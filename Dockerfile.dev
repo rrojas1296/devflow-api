@@ -1,0 +1,13 @@
+FROM node:24-alpine
+
+RUN apk add --no-cache bash openssl libc6-compat curl
+
+RUN corepack enable
+RUN corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install
+

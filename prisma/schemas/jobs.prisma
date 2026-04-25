@@ -1,0 +1,5 @@
+model Jobs {
+  id          Int    @id @default(autoincrement())
+  name        String
+  description String
+}
