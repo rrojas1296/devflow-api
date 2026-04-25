@@ -1,8 +1,8 @@
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import { Body, Controller, HttpStatus, Post, Req, Res } from '@nestjs/common';
 import { LoginUserDTO } from '../dtos/LoginUser.dto';
 import { AuthService } from '../services/auth.service';
 import { RegisterUserDTO } from '../dtos/RegisterUser.dto';
-import { type Response } from 'express';
+import { type Request, type Response } from 'express';
 import { NODE_ENV } from 'src/config/environment';
 
 @Controller('auth')
@@ -32,8 +32,6 @@ export class AuthController {
     return res.json({
       message: 'User logged in successfully',
       statusCode: HttpStatus.OK,
-      accessToken,
-      refreshToken,
     });
   }
 
@@ -56,10 +54,25 @@ export class AuthController {
       path: '/',
     });
     return res.json({
+      message: 'User registered successfully',
+      statusCode: HttpStatus.OK,
+    });
+  }
+
+  @Post('validate')
+  async validateUser(@Res() res: Response, @Req() req: Request) {
+    const { accessToken, refreshToken } = req.cookies;
+    const payload = await this.authService.validateCookies(
+      accessToken as string,
+      refreshToken as string,
+    );
+    return res.json({
+      user: {
+        id: payload.sub,
+        email: payload.email,
+      },
       message: 'User logged in successfully',
       statusCode: HttpStatus.OK,
-      accessToken,
-      refreshToken,
     });
   }
 }

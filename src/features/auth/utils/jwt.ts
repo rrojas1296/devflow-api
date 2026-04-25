@@ -31,6 +31,6 @@ export const verifyToken = async (
     type === 'access'
       ? new TextEncoder().encode(JWT_SECRET)
       : new TextEncoder().encode(REFRESH_SECRET);
-  const { payload } = await jose.jwtVerify(token, secret);
+  const { payload } = await jose.jwtVerify<Payload>(token, secret);
   return payload;
 };

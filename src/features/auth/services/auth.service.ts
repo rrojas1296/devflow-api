@@ -3,7 +3,8 @@ import { LoginUserDTO } from '../dtos/LoginUser.dto';
 import { UsersRepository } from 'src/features/users/repositories/users.repository';
 import { RegisterUserDTO } from '../dtos/RegisterUser.dto';
 import { comparePassword, hashPassword } from '../utils/bcrypt';
-import { generateTokens } from '../utils/jwt';
+import { generateTokens, verifyToken } from '../utils/jwt';
+import { sleep } from '../utils/sleep';
 
 @Injectable()
 export class AuthService {
@@ -13,6 +14,8 @@ export class AuthService {
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
     const isValidPassword = await comparePassword(data.password, user.password);
     if (!isValidPassword) throw new HttpException('Invalid password', 401);
+
+    await sleep(2000);
 
     const { accessToken, refreshToken } = await generateTokens({
       email: user.email,
@@ -41,5 +44,15 @@ export class AuthService {
       accessToken,
       refreshToken,
     };
+  }
+
+  async validateCookies(accessToken: string, refreshToken: string) {
+    try {
+      const payload = await verifyToken(accessToken, 'access');
+      await verifyToken(refreshToken, 'refresh');
+      return payload;
+    } catch {
+      throw new HttpException('Invalid token', 401);
+    }
   }
 }
