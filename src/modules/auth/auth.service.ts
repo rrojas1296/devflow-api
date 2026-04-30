@@ -1,11 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { LoginUserDTO } from '../dtos/LoginUser.dto';
 import { UsersRepository } from 'src/modules/users/repositories/users.repository';
-import { RegisterUserDTO } from '../dtos/RegisterUser.dto';
 import { sleep } from 'src/common/utils/sleep';
 import { comparePassword } from 'src/common/utils/bcrypt';
 import { generateTokens, verifyToken } from 'src/common/utils/jwt';
 import { hashPassword } from 'better-auth/crypto';
+import { LoginUserDTO } from './dtos/login-user.dto';
+import { RegisterUserDTO } from './dtos/register-user.dto';
 
 @Injectable()
 export class AuthService {

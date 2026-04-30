@@ -7,9 +7,9 @@ import {
   Req,
   Res,
 } from '@nestjs/common';
-import { LoginUserDTO } from '../dtos/LoginUser.dto';
-import { AuthService } from '../services/auth.service';
-import { RegisterUserDTO } from '../dtos/RegisterUser.dto';
+import { LoginUserDTO } from '../dtos/login-user.dto';
+import { RegisterUserDTO } from '../dtos/register-user.dto';
+import { AuthService } from '../auth.service';
 import { type Request, type Response } from 'express';
 import { NODE_ENV } from 'src/config/environment';
 
