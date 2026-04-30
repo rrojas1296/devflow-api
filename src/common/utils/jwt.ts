@@ -1,14 +1,15 @@
 import { JWT_SECRET, REFRESH_SECRET } from 'src/config/environment';
-import { Payload } from '../types/jwt.interface';
 import * as jose from 'jose';
+import { Payload } from 'src/modules/auth/interfaces/jwt.interface';
 
 export const generateTokens = async (
-  payload: Payload,
+  email: string,
+  sub: string,
 ): Promise<{ accessToken: string; refreshToken: string }> => {
   const jwtSecret = new TextEncoder().encode(JWT_SECRET);
   const refreshSecret = new TextEncoder().encode(REFRESH_SECRET);
 
-  const jwt = new jose.SignJWT(payload);
+  const jwt = new jose.SignJWT({ email, sub });
 
   const accessToken = await jwt
     .setProtectedHeader({ alg: 'HS256' })
@@ -27,10 +28,14 @@ export const verifyToken = async (
   token: string,
   type: 'access' | 'refresh',
 ) => {
-  const secret =
-    type === 'access'
-      ? new TextEncoder().encode(JWT_SECRET)
-      : new TextEncoder().encode(REFRESH_SECRET);
-  const { payload } = await jose.jwtVerify<Payload>(token, secret);
-  return payload;
+  try {
+    const secret =
+      type === 'access'
+        ? new TextEncoder().encode(JWT_SECRET)
+        : new TextEncoder().encode(REFRESH_SECRET);
+    const { payload } = await jose.jwtVerify<Payload>(token, secret);
+    return payload;
+  } catch {
+    return null;
+  }
 };

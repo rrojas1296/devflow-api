@@ -1,10 +1,11 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { LoginUserDTO } from '../dtos/LoginUser.dto';
-import { UsersRepository } from 'src/features/users/repositories/users.repository';
+import { UsersRepository } from 'src/modules/users/repositories/users.repository';
 import { RegisterUserDTO } from '../dtos/RegisterUser.dto';
-import { comparePassword, hashPassword } from '../utils/bcrypt';
-import { generateTokens, verifyToken } from '../utils/jwt';
-import { sleep } from '../utils/sleep';
+import { sleep } from 'src/common/utils/sleep';
+import { comparePassword } from 'src/common/utils/bcrypt';
+import { generateTokens, verifyToken } from 'src/common/utils/jwt';
+import { hashPassword } from 'better-auth/crypto';
 
 @Injectable()
 export class AuthService {
@@ -12,15 +13,18 @@ export class AuthService {
   async loginUser(data: LoginUserDTO) {
     const user = await this.usersRepository.getByEmail(data.email);
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    const isValidPassword = await comparePassword(data.password, user.password);
+    const isValidPassword = await comparePassword(
+      data.password,
+      user.password ? user.password : '',
+    );
     if (!isValidPassword) throw new HttpException('Invalid password', 401);
 
     await sleep(2000);
 
-    const { accessToken, refreshToken } = await generateTokens({
-      email: user.email,
-      sub: user.id,
-    });
+    const { accessToken, refreshToken } = await generateTokens(
+      user.email,
+      user.id,
+    );
     return {
       accessToken,
       refreshToken,
@@ -30,16 +34,16 @@ export class AuthService {
   async registerUser(data: RegisterUserDTO) {
     const user = await this.usersRepository.getByEmail(data.email);
     if (user) throw new HttpException('User already exists', 400);
-    const password = await hashPassword(data.password);
-    const id = await this.usersRepository.create({
+    const hash = await hashPassword(data.password);
+    const newUser = await this.usersRepository.create({
       ...data,
-      password,
+      password: hash,
     });
 
-    const { accessToken, refreshToken } = await generateTokens({
-      email: data.email,
-      sub: id,
-    });
+    const { accessToken, refreshToken } = await generateTokens(
+      newUser.email,
+      newUser.id,
+    );
     return {
       accessToken,
       refreshToken,
@@ -47,12 +51,8 @@ export class AuthService {
   }
 
   async validateCookies(accessToken: string, refreshToken: string) {
-    try {
-      const payload = await verifyToken(accessToken, 'access');
-      await verifyToken(refreshToken, 'refresh');
-      return payload;
-    } catch {
-      throw new HttpException('Invalid token', 401);
-    }
+    const payload = await verifyToken(accessToken, 'access');
+    await verifyToken(refreshToken, 'refresh');
+    return payload;
   }
 }

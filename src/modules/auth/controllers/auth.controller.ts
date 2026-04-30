@@ -1,4 +1,12 @@
-import { Body, Controller, HttpStatus, Post, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { LoginUserDTO } from '../dtos/LoginUser.dto';
 import { AuthService } from '../services/auth.service';
 import { RegisterUserDTO } from '../dtos/RegisterUser.dto';
@@ -59,7 +67,7 @@ export class AuthController {
     });
   }
 
-  @Post('validate')
+  @Get('validate')
   async validateUser(@Res() res: Response, @Req() req: Request) {
     const { accessToken, refreshToken } = req.cookies;
     const payload = await this.authService.validateCookies(
@@ -67,10 +75,7 @@ export class AuthController {
       refreshToken as string,
     );
     return res.json({
-      user: {
-        id: payload.sub,
-        email: payload.email,
-      },
+      isAuthenticated: payload ? true : false,
       message: 'User logged in successfully',
       statusCode: HttpStatus.OK,
     });
