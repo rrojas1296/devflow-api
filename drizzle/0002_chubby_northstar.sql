@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "lastLogin" timestamp with time zone;

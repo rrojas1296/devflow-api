@@ -1,25 +1,34 @@
-import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+import { timestamp } from 'drizzle-orm/pg-core';
+import { boolean } from 'drizzle-orm/pg-core';
+import { uuid } from 'drizzle-orm/pg-core';
 import { pgEnum } from 'drizzle-orm/pg-core';
-import { uuid, pgTable, text, timestamp } from 'drizzle-orm/pg-core';
+import { text } from 'drizzle-orm/pg-core';
+import { pgTable } from 'drizzle-orm/pg-core';
 
-export const providerEnum = pgEnum('provider', ['GOOGLE', 'GITHUB', 'LOCAL']);
+export const providerEnum = pgEnum('provider', ['LOCAL', 'GOOGLE', 'GITHUB']);
 
-export const users = pgTable('users', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  firstName: text('firstName').notNull(),
-  lastName: text('lastName').notNull(),
-  email: text('email').notNull(),
-  imageUrl: text('imageUrl'),
-  password: text('password'),
-  provider: providerEnum('provider').default('LOCAL').notNull(),
-  createdAt: timestamp('createdAt', { withTimezone: true })
+export const users = pgTable('Users', {
+  id: uuid().defaultRandom().primaryKey(),
+  firstName: text().notNull(),
+  lastName: text().notNull(),
+  email: text().notNull().unique(),
+  provider: providerEnum().default('LOCAL').notNull(),
+  password: text(),
+  isDeleted: boolean().default(false),
+  createdAt: timestamp({
+    withTimezone: true,
+  })
     .defaultNow()
     .notNull(),
-  updatedAt: timestamp('updatedAt', { withTimezone: true })
+  updatedAt: timestamp({
+    withTimezone: true,
+  })
     .defaultNow()
     .notNull(),
-  deletedAt: timestamp('deletedAt', { withTimezone: true }),
+  deletedAt: timestamp({
+    withTimezone: true,
+  }),
 });
 
-export type User = InferSelectModel<typeof users>;
-export type InsertUser = InferInsertModel<typeof users>;
+export type User = typeof users.$inferSelect;
+export type InsertUser = typeof users.$inferInsert;
