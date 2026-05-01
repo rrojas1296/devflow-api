@@ -36,6 +36,20 @@
       "when": 1777532162863,
       "tag": "0004_productive_sunset_bain",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777571278338,
+      "tag": "0005_volatile_donald_blake",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1777573105667,
+      "tag": "0006_familiar_marrow",
+      "breakpoints": true
     }
   ]
 }

@@ -8,13 +8,15 @@ export const GOOGLE_CALLBACK_URL = process.env.GOOGLE_CALLBACK_URL || '';
 export const NODE_ENV =
   (process.env.NODE_ENV as 'production' | 'development') || 'development';
 
-console.log({
-  DATABASE_URL,
-  JWT_SECRET,
-  REFRESH_SECRET,
-  CLIENT_URL,
-  GOOGLE_CLIENT_ID,
-  GOOGLE_CLIENT_SECRET,
-  GOOGLE_CALLBACK_URL,
-  NODE_ENV,
-});
+if (NODE_ENV !== 'production') {
+  console.log({
+    DATABASE_URL,
+    JWT_SECRET,
+    REFRESH_SECRET,
+    CLIENT_URL,
+    GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET,
+    GOOGLE_CALLBACK_URL,
+    NODE_ENV,
+  });
+}

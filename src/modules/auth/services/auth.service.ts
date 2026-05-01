@@ -1,14 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { UsersRepository } from 'src/modules/users/repositories/users.repository';
-import { sleep } from 'src/common/utils/sleep';
 import { comparePassword, hashPassword } from 'src/common/utils/bcrypt';
 import { generateTokens, verifyToken } from 'src/common/utils/jwt';
-import { LoginUserDTO } from './dtos/login-user.dto';
-import { RegisterUserDTO } from './dtos/register-user.dto';
+import { LoginUserDTO } from '../dtos/login-user.dto';
+import { RegisterUserDTO } from '../dtos/register-user.dto';
 
 @Injectable()
 export class AuthService {
   constructor(private usersRepository: UsersRepository) {}
+
   async loginUser(data: LoginUserDTO) {
     const user = await this.usersRepository.getByEmail(data.email);
     if (!user) throw new HttpException('User not found', HttpStatus.NOT_FOUND);
@@ -17,8 +17,6 @@ export class AuthService {
       user.password ? user.password : '',
     );
     if (!isValidPassword) throw new HttpException('Invalid password', 401);
-
-    await sleep(2000);
 
     const { accessToken, refreshToken } = await generateTokens(
       user.email,

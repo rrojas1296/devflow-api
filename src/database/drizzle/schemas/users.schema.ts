@@ -14,6 +14,8 @@ export const users = pgTable('Users', {
   email: text().notNull().unique(),
   provider: providerEnum().default('LOCAL').notNull(),
   password: text(),
+  imageUrl: text(),
+  idGoogle: text(),
   isDeleted: boolean().default(false),
   createdAt: timestamp({
     withTimezone: true,

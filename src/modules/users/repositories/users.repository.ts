@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { InsertUser, User, users } from 'src/database/drizzle/schemas';
 import { type DB } from 'src/database/drizzle/client';
 
@@ -15,7 +15,8 @@ export class UsersRepository {
     const user = await this.db
       .select()
       .from(users)
-      .where(eq(users.email, email));
+      .where(and(eq(users.email, email), eq(users.isDeleted, false)));
+
     return user[0];
   }
 
