@@ -1,6 +1,6 @@
-import { Job, JobsCreateInput } from 'src/database/drizzle/schemas/jobs.schema';
+import { Job } from 'src/database/drizzle/schemas';
 
 export interface IJobsRepository {
   getJobs(): Promise<Job[]>;
-  createJob(data: JobsCreateInput): Promise<string>;
+  createJob(data: Job): Promise<Job>;
 }
