@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: devflow-api
+    working_dir: /app
+    command: pnpm run start:dev
+    ports:
+      - "${PORT}:${PORT}"
+    volumes:
+      - .:/app
+    env_file:
+      - .env.development
+    depends_on:
+      - db
+      - redis
+    networks:
+      - devflow
+  db:
+    image: postgres
+    container_name: devflow-db
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER} 
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} 
+      POSTGRES_DB: ${POSTGRES_DB} 
+    networks:
+      - devflow
+  redis:
+    image: redis:8-alpine
+    container_name: devflow-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - devflow
+
+networks:
+  devflow:
+    driver: bridge
