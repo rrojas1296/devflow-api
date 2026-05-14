@@ -33,7 +33,7 @@ services:
     image: redis:8-alpine
     container_name: devflow-redis
     ports:
-      - "6379:6379"
+      - "${REDIS_PORT}:${REDIS_PORT}"
     networks:
       - devflow
 

@@ -9,6 +9,7 @@ import { pgTable } from 'drizzle-orm/pg-core';
 export const modalityEnum = pgEnum('modality', ['onsite', 'remote', 'hybrid']);
 
 export type JobModality = 'onsite' | 'remote' | 'hybrid';
+
 export const jobs = pgTable('jobs', {
   id: uuid('id').defaultRandom().primaryKey(),
   title: varchar('title').notNull(),
