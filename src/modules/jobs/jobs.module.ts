@@ -12,11 +12,10 @@ import { ScrapeJobsUseCase } from './application/use-cases/scrape-jobs.use-case'
 import { QueueModule } from 'src/infrastructure/queue/bullmq.module';
 import { JOBS_QUEUE } from 'src/infrastructure/queue/bullmq.config';
 import { DrizzleModule } from 'src/infrastructure/database/drizzle/drizzle.module';
-import { ScraperCron } from './infrastructure/cron/scraper.cron';
 
 const USE_CASES = [CreateJobUseCase, ScrapeJobsUseCase, GetJobsUseCase];
 const SOURCES = [LinkedinSource];
-const CRONS = [ScraperCron];
+const CRONS = [];
 const BULLMQ = [JobsProducer, JobsProcessor];
 const SERVICES = [JobsScraperService];
 const REPOSITORIES = [JobsRepository];

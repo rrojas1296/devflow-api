@@ -6,7 +6,7 @@ import { Cron } from '@nestjs/schedule';
 export class ScraperCron {
   constructor(private readonly scrapeJobsUseCase: ScrapeJobsUseCase) {}
 
-  @Cron('*/20 * * * * *')
+  @Cron('*/5 * * * * *')
   async handleCron() {
     console.log('Running scraper cron');
     await this.scrapeJobsUseCase.execute('linkedin');
