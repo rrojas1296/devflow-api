@@ -6,8 +6,11 @@ export class JobsScraperService {
   constructor(private readonly linkedin: LinkedinSource) {}
 
   async scrape(source: string) {
-    if (source === 'linkedin') {
-      return this.linkedin.fetchJobs();
+    switch (source) {
+      case 'linkedin':
+        return this.linkedin.fetchJobs();
+      default:
+        return [];
     }
   }
 }

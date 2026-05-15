@@ -1,4 +1,4 @@
-import { Job } from 'src/database/drizzle/schemas';
+import { Job } from 'src/infrastructure/database/drizzle/schemas';
 
 export interface IJobsRepository {
   getJobs(): Promise<Job[]>;

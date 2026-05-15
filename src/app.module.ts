@@ -1,10 +1,10 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { JobsModule } from './modules/jobs/jobs.module';
-import { QueueModule } from './modules/jobs/infrastructure/queue/queue.module';
+import { ScheduleModule } from '@nestjs/schedule';
 
 @Module({
-  imports: [JobsModule, QueueModule],
+  imports: [JobsModule, ScheduleModule.forRoot()],
   controllers: [AppController],
   providers: [],
 })

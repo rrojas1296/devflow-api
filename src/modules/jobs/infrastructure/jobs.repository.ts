@@ -3,8 +3,8 @@ import {
   Job,
   jobs,
   JobsCreateInput,
-} from 'src/database/drizzle/schemas/jobs.schema';
-import { type DrizzleDB } from 'src/database/drizzle/types/drizzle.types';
+} from 'src/infrastructure/database/drizzle/schemas/jobs.schema';
+import { type DrizzleDB } from 'src/infrastructure/database/drizzle/types/drizzle.types';
 import { IJobsRepository } from '../domain/jobs-repository.interface';
 
 @Injectable()
@@ -19,5 +19,10 @@ export class JobsRepository implements IJobsRepository {
   async createJob(data: JobsCreateInput): Promise<Job> {
     const [newJob] = await this.db.insert(jobs).values(data).returning();
     return newJob;
+  }
+
+  async bullkJobs(data: JobsCreateInput[]): Promise<Job[]> {
+    const newJobs = await this.db.insert(jobs).values(data).returning();
+    return newJobs;
   }
 }

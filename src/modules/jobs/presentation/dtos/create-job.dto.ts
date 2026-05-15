@@ -1,5 +1,5 @@
 import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
-import { type JobModality } from 'src/database/drizzle/schemas';
+import { type JobModality } from 'src/infrastructure/database/drizzle/schemas';
 
 export class CreateJobDto {
   @IsString()
