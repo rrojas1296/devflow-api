@@ -13,7 +13,7 @@ import { chromium } from 'playwright';
   await page.waitForTimeout(20000); // 20s para login manual
 
   // 💾 Guardar sesión
-  await context.storageState({ path: 'storageState.json' });
+  await context.storageState({ path: 'storageSession.json' });
 
   await browser.close();
 })();
