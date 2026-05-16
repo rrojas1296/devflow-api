@@ -20,7 +20,7 @@ export class JobsProcessor extends WorkerHost {
     });
     const jobs = await this.scraper.scrape(job.data);
 
-    // await this.repository.bullkJobs(jobs);
+    await this.repository.bullkJobs(jobs);
     return { insetrted: jobs?.length };
   }
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ADD COLUMN "posted_data" timestamp with time zone NOT NULL;

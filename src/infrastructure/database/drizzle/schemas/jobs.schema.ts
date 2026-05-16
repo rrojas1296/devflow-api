@@ -20,6 +20,8 @@ export const jobs = pgTable('jobs', {
   isDeleted: boolean('isDeleted').notNull().default(false),
   imageUrl: text('image_url'),
   modality: modalityEnum('modality').notNull().default('remote'),
+  jobId: varchar('job_id').notNull(),
+  postedDate: timestamp('posted_date', { withTimezone: true }).notNull(),
   linkUrl: text('link_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),

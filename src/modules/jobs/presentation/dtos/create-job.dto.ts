@@ -31,4 +31,10 @@ export class CreateJobDto {
   @IsBoolean()
   @IsOptional()
   isDeleted?: boolean;
+
+  @IsString()
+  postedDate: Date;
+
+  @IsString()
+  jobId: string;
 }
