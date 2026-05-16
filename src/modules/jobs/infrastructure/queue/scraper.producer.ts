@@ -5,18 +5,15 @@ import {
   JOBS_QUEUE,
   SCRAPE_JOBS,
 } from 'src/infrastructure/queue/bullmq.config';
+import { ScraperDto } from '../../presentation/dtos/scraper.dto';
 
 @Injectable()
 export class JobsProducer {
   constructor(@InjectQueue(JOBS_QUEUE) private queue: Queue) {}
 
-  async scrapeJobs(source: string) {
-    await this.queue.add(
-      SCRAPE_JOBS,
-      { source },
-      {
-        removeOnComplete: true,
-      },
-    );
+  async scrapeJobs(data: ScraperDto) {
+    await this.queue.add(SCRAPE_JOBS, data, {
+      removeOnComplete: true,
+    });
   }
 }

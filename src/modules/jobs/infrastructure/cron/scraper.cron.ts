@@ -9,6 +9,10 @@ export class ScraperCron {
   @Cron('*/5 * * * * *')
   async handleCron() {
     console.log('Running scraper cron');
-    await this.scrapeJobsUseCase.execute('linkedin');
+    await this.scrapeJobsUseCase.execute({
+      source: 'linkedin',
+      keywords: 'Fullstack react node',
+      modality: ['remote'],
+    });
   }
 }

@@ -3,6 +3,7 @@ import { Job } from 'bullmq';
 import { JobsScraperService } from '../scraper/jobs-scraper.service';
 import { JobsRepository } from '../jobs.repository';
 import { JOBS_QUEUE } from 'src/infrastructure/queue/bullmq.config';
+import { ScraperDto } from '../../presentation/dtos/scraper.dto';
 
 @Processor(JOBS_QUEUE)
 export class JobsProcessor extends WorkerHost {
@@ -13,12 +14,13 @@ export class JobsProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<{ source: string }>) {
+  async process(job: Job<ScraperDto>) {
     console.log({
-      source: job.data.source,
+      job: job.data,
     });
-    const jobs = await this.scraper.scrape(job.data.source);
-    await this.repository.bullkJobs(jobs);
+    const jobs = await this.scraper.scrape(job.data);
+
+    // await this.repository.bullkJobs(jobs);
     return { insetrted: jobs?.length };
   }
 }

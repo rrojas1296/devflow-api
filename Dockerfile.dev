@@ -1,6 +1,6 @@
-FROM node:24-alpine
+FROM node:24.15-bullseye
 
-RUN apk add --no-cache bash
+RUN apt-get update && apt-get install -y bash
 
 RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
@@ -10,5 +10,6 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 
 RUN pnpm install --ignore-scripts
+RUN pnpm exec playwright install --with-deps
 
 COPY . .

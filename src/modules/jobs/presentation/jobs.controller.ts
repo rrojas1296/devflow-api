@@ -3,6 +3,7 @@ import { CreateJobDto } from './dtos/create-job.dto';
 import { GetJobsUseCase } from '../application/use-cases/get-jobs.use-case';
 import { CreateJobUseCase } from '../application/use-cases/create-job.use-case';
 import { ScrapeJobsUseCase } from '../application/use-cases/scrape-jobs.use-case';
+import { ScraperDto } from './dtos/scraper.dto';
 
 @Controller('jobs')
 export class JobsController {
@@ -33,9 +34,9 @@ export class JobsController {
     };
   }
 
-  @Post('scrape')
-  scrape(@Body() dto: { source: string }) {
-    this.scrapeJobsUseCase.execute(dto.source);
+  @Post('scraper')
+  async scrape(@Body() dto: ScraperDto) {
+    await this.scrapeJobsUseCase.execute(dto);
     return {
       message: 'Jobs scrapper initialized',
       statusCode: HttpStatus.OK,

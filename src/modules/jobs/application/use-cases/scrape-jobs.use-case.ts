@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { JobsProducer } from '../../infrastructure/queue/scraper.producer';
+import { ScraperDto } from '../../presentation/dtos/scraper.dto';
 
 @Injectable()
 export class ScrapeJobsUseCase {
   constructor(private readonly producer: JobsProducer) {}
 
-  async execute(source: string) {
-    await this.producer.scrapeJobs(source);
+  async execute(data: ScraperDto) {
+    await this.producer.scrapeJobs(data);
   }
 }
