@@ -36,5 +36,5 @@ export class CreateJobDto {
   postedDate: Date;
 
   @IsString()
-  jobId: string;
+  externalId: string;
 }

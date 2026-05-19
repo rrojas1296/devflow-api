@@ -3,18 +3,18 @@ import {
   JobModality,
   JobsCreateInput,
 } from 'src/infrastructure/database/drizzle/schemas';
+import sanitizeHtml from 'sanitize-html';
+
 import { ScraperDto } from 'src/modules/jobs/presentation/dtos/scraper.dto';
 import { chromium } from 'playwright';
 import { ManipulateType } from 'dayjs';
 import path from 'path';
-import fs from 'fs';
 import { STACK } from '../constants/stack.constants';
+import { hasTech } from 'src/shared/utils/hasTech';
 
 @Injectable()
 export class LinkedinSource {
   name = 'linkedin';
-  constructor() {}
-
   async fetchJobs(data: ScraperDto): Promise<JobsCreateInput[]> {
     try {
       const url = new URL('https://www.linkedin.com/jobs/search-results');
@@ -23,12 +23,7 @@ export class LinkedinSource {
       url.searchParams.append('origin', 'JOB_COLLECTION_PAGE_SEARCH_BUTTON');
       url.searchParams.append('geoId', '91000011');
       url.searchParams.append('f_TPR', '86400');
-
-      console.log({
-        url: url.toString(),
-        path: storagePath,
-        exist: fs.existsSync(storagePath),
-      });
+      url.searchParams.append('f_WT', '2');
 
       const browser = await chromium.launch({
         headless: true,
@@ -44,7 +39,7 @@ export class LinkedinSource {
       await page.goto(url.toString(), {
         waitUntil: 'domcontentloaded',
       });
-      await page.waitForTimeout(1000);
+      await page.waitForTimeout(3000);
       const cards = page.locator(
         "div[componentKey='SearchResultsMainContent'] > div > div",
       );
@@ -53,16 +48,9 @@ export class LinkedinSource {
 
       const dataJobs: JobsCreateInput[] = [];
 
-      const prevJobId = await page.evaluate(() =>
-        new URL(location.href).searchParams.get('currentJobId'),
-      );
-      console.log({ prevJobId });
-
-      for (let i = 0; i < count; i++) {
-        console.log(`========= ${i} / ${count} ==========`);
+      console.log(`=====> GETTING ${count - 3} JOBS`);
+      for (let i = 0; i < count - 3; i++) {
         const card = cards.nth(i);
-        // avoid the last 3 elements
-        if (i >= count - 3) continue;
         await card.click();
 
         await page.waitForFunction(() => {
@@ -70,7 +58,7 @@ export class LinkedinSource {
             "div[componentKey^='JobDetails_AboutTheJob']",
           );
 
-          return el && el.textContent && el.textContent.length > 300;
+          return el && el.textContent && el.textContent.length > 250;
         });
         const job = await card.evaluate((card) => {
           const regex = /^(.*)\s*\((.*)\)$/;
@@ -81,8 +69,8 @@ export class LinkedinSource {
             '';
 
           const time = card.querySelectorAll('div > p > span')[3]?.textContent;
-          const value = Number(time.match(timeRegex)?.[0]);
-          const unit = time.split(' ')[2] as ManipulateType;
+          const value = Number(time?.match(timeRegex)?.[0] || 10);
+          const unit = (time?.split(' ')[2] || 'minutes') as ManipulateType;
           const date = new Date();
           if (unit === 'minutes') {
             date.setMinutes(date.getMinutes() - value);
@@ -98,11 +86,6 @@ export class LinkedinSource {
               .querySelectorAll('div > p')[2]
               ?.textContent.match(regex)?.[1]
               .trim() || 'Latin America';
-
-          const buttons = document
-            .querySelector("div[componentKey^='JobDetails_AboutTheJob']")
-            ?.querySelectorAll('button');
-          buttons?.[0]?.remove();
 
           const modality = card
             .querySelectorAll('div > p')[2]
@@ -123,26 +106,36 @@ export class LinkedinSource {
             linkUrl: `https://www.linkedin.com/jobs/view/${jobLinkedinId}`,
           };
         });
+
         const description = await page
           .locator("div[componentKey^='JobDetails_AboutTheJob']")
           .nth(0)
-          .innerHTML();
+          .evaluate((el) => {
+            const button = el.querySelector('button');
+            button?.remove();
+            return el.innerHTML;
+          });
+        const sanitizedDescription = sanitizeHtml(description, {
+          allowedTags: sanitizeHtml.defaults.allowedTags,
+          allowedAttributes: {},
+        });
+        if (!job.title || !job.companyName || !job.location || !job.modality)
+          continue;
+
         dataJobs.push({
           title: job.title,
-          description: description,
+          description: sanitizedDescription,
           companyName: job.companyName,
           location: job.location,
-          jobId: job.jobId,
-          stack: STACK.filter((s) =>
-            description?.toLowerCase().includes(s.toLowerCase()),
-          ),
+          externalId: job.jobId,
+          stack: STACK.filter((s) => hasTech(description, s)),
           imageUrl: job.imageUrl,
           modality: job.modality as JobModality,
           linkUrl: job.linkUrl,
+          source: this.name,
           postedDate: new Date(job.postedDate),
         });
       }
-      console.log(`========> ${dataJobs.length} JOBS FOUND`);
       await browser.close();
       return dataJobs;
     } catch (err) {

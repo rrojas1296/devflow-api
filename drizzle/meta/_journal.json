@@ -50,6 +50,13 @@
       "when": 1778913622347,
       "tag": "0006_short_may_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779138733163,
+      "tag": "0007_mature_blue_blade",
+      "breakpoints": true
     }
   ]
 }
