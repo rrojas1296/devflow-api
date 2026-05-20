@@ -30,16 +30,22 @@ export class LinkedinSource {
       });
       const context = await browser.newContext({
         storageState: storagePath,
-        locale: 'en-US',
-        extraHTTPHeaders: {
-          'Accept-Language': 'en-US,en;q=0.9',
-        },
+        userAgent:
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+        viewport: { width: 1280, height: 800 },
       });
       const page = await context.newPage();
       await page.goto(url.toString(), {
         waitUntil: 'domcontentloaded',
       });
-      await page.waitForTimeout(3000);
+      await page.waitForFunction(
+        ({ selector, min }) =>
+          document.querySelectorAll(selector).length >= min,
+        {
+          selector: "div[componentKey='SearchResultsMainContent'] > div > div",
+          min: 5,
+        },
+      );
       const cards = page.locator(
         "div[componentKey='SearchResultsMainContent'] > div > div",
       );
@@ -107,6 +113,21 @@ export class LinkedinSource {
           };
         });
 
+        const applyButton = page.locator(
+          "div[data-component-type='LazyColumn'] a[aria-label='Apply on company website']",
+        );
+
+        let linkUrl = job.linkUrl;
+
+        const externalURL = (await applyButton.count()) > 0;
+
+        if (externalURL) {
+          const href = await applyButton
+            .first()
+            .evaluate((el) => el.getAttribute('href'));
+          linkUrl = new URL(href!).searchParams.get('url')!;
+        }
+
         const description = await page
           .locator("div[componentKey^='JobDetails_AboutTheJob']")
           .nth(0)
@@ -131,7 +152,7 @@ export class LinkedinSource {
           stack: STACK.filter((s) => hasTech(description, s)),
           imageUrl: job.imageUrl,
           modality: job.modality as JobModality,
-          linkUrl: job.linkUrl,
+          linkUrl,
           source: this.name,
           postedDate: new Date(job.postedDate),
         });
