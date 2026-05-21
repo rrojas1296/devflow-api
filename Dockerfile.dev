@@ -4,6 +4,7 @@ RUN apt-get update && apt-get install -y bash
 
 RUN corepack enable
 RUN corepack prepare pnpm@latest --activate
+ENV CI=true
 
 WORKDIR /app
 
