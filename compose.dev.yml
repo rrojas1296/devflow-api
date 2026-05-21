@@ -1,23 +1,23 @@
 services:
-  api:
-    build:
-      context: .
-      dockerfile: Dockerfile.dev
-    container_name: devflow-api
-    working_dir: /app
-    command: pnpm run start:dev
-    ports:
-      - "${PORT}:${PORT}"
-    volumes:
-      - .:/app
-      - node_modules:/app/node_modules
-    env_file:
-      - .env.development
-    depends_on:
-      - db
-      - redis
-    networks:
-      - devflow
+  # api:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.dev
+  #   container_name: devflow-api
+  #   working_dir: /app
+  #   command: pnpm run start:dev
+  #   ports:
+  #     - "${PORT}:${PORT}"
+  #   volumes:
+  #     - .:/app
+  #     - node_modules:/app/node_modules
+  #   env_file:
+  #     - .env.development
+  #   depends_on:
+  #     - db
+  #     - redis
+  #   networks:
+  #     - devflow
   db:
     image: postgres
     container_name: devflow-db

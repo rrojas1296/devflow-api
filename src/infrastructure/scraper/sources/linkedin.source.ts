@@ -1,42 +1,42 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import {
   JobModality,
   JobsCreateInput,
 } from 'src/infrastructure/database/drizzle/schemas';
 import sanitizeHtml from 'sanitize-html';
-
-import { ScraperDto } from 'src/modules/jobs/presentation/dtos/scraper.dto';
 import { chromium } from 'playwright';
 import { ManipulateType } from 'dayjs';
-import path from 'path';
 import { STACK } from '../constants/stack.constants';
 import { hasTech } from 'src/shared/utils/hasTech';
+import path from 'path';
+import { ScraperData } from '../types/scraper-data.interface';
 
 @Injectable()
 export class LinkedinSource {
   name = 'linkedin';
-  async fetchJobs(data: ScraperDto): Promise<JobsCreateInput[]> {
+  async fetchJobs(data: ScraperData): Promise<JobsCreateInput[]> {
     try {
       const url = new URL('https://www.linkedin.com/jobs/search-results');
-      const storagePath = path.resolve(process.cwd(), 'storageSession.json');
       url.searchParams.append('keywords', data.keywords);
       url.searchParams.append('origin', 'JOB_COLLECTION_PAGE_SEARCH_BUTTON');
       url.searchParams.append('geoId', '91000011');
       url.searchParams.append('f_TPR', '86400');
       url.searchParams.append('f_WT', '2');
+      const dataPath = path.resolve(process.cwd(), 'storageSession.json');
+      console.log(`=====> INIT PLAYWRIGHT`);
 
       const browser = await chromium.launch({
-        headless: true,
+        headless: false,
       });
+
       const context = await browser.newContext({
-        storageState: storagePath,
-        userAgent:
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36',
+        storageState: dataPath,
         viewport: { width: 1280, height: 800 },
       });
+
       const page = await context.newPage();
       await page.goto(url.toString(), {
-        waitUntil: 'domcontentloaded',
+        timeout: 0,
       });
       await page.waitForFunction(
         ({ selector, min }) =>
@@ -44,6 +44,9 @@ export class LinkedinSource {
         {
           selector: "div[componentKey='SearchResultsMainContent'] > div > div",
           min: 5,
+        },
+        {
+          timeout: 0,
         },
       );
       const cards = page.locator(
@@ -157,11 +160,12 @@ export class LinkedinSource {
           postedDate: new Date(job.postedDate),
         });
       }
+      await context.close();
       await browser.close();
       return dataJobs;
     } catch (err) {
-      console.log('ERROR ====>', err);
-      return [];
+      console.error('=====> ERROR', err.message);
+      throw new HttpException(err.message as string, HttpStatus.BAD_REQUEST);
     }
   }
 }

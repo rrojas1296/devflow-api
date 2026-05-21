@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { JobsProducer } from '../../infrastructure/queue/scraper.producer';
-import { ScraperDto } from '../../presentation/dtos/scraper.dto';
+import { ScraperDto } from '../../presentation/dtos/scraper-jobs.dto';
 
 @Injectable()
 export class ScrapeJobsUseCase {

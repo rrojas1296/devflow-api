@@ -5,38 +5,27 @@ import { GetJobsUseCase } from './application/use-cases/get-jobs.use-case';
 import { CreateJobUseCase } from './application/use-cases/create-job.use-case';
 import { JobsProducer } from './infrastructure/queue/scraper.producer';
 import { JobsProcessor } from './infrastructure/queue/scraper.processor';
-import { JobsScraperService } from './infrastructure/scraper/jobs-scraper.service';
-import { LinkedinSource } from './infrastructure/scraper/sources/linkedin.source';
 import { BullModule } from '@nestjs/bullmq';
 import { ScrapeJobsUseCase } from './application/use-cases/scrape-jobs.use-case';
-import { QueueModule } from 'src/infrastructure/queue/bullmq.module';
-import { JOBS_QUEUE } from 'src/infrastructure/queue/bullmq.config';
+import { QueueModule } from 'src/infrastructure/bullmq/bullmq.module';
+import { JOBS_QUEUE } from 'src/infrastructure/bullmq/bullmq.config';
 import { DrizzleModule } from 'src/infrastructure/database/drizzle/drizzle.module';
-import { PlaywrightService } from './infrastructure/playwright/playwright.service';
+import { ScraperModule } from 'src/infrastructure/scraper/scraper.module';
 
 const USE_CASES = [CreateJobUseCase, ScrapeJobsUseCase, GetJobsUseCase];
-const SOURCES = [LinkedinSource];
-const CRONS = [];
 const BULLMQ = [JobsProducer, JobsProcessor];
-const SERVICES = [JobsScraperService, PlaywrightService];
 const REPOSITORIES = [JobsRepository];
 
 @Module({
   imports: [
     DrizzleModule,
     QueueModule,
+    ScraperModule,
     BullModule.registerQueue({
       name: JOBS_QUEUE,
     }),
   ],
   controllers: [JobsController],
-  providers: [
-    ...USE_CASES,
-    ...SOURCES,
-    ...CRONS,
-    ...BULLMQ,
-    ...SERVICES,
-    ...REPOSITORIES,
-  ],
+  providers: [...USE_CASES, ...BULLMQ, ...REPOSITORIES],
 })
 export class JobsModule {}

@@ -1,8 +1,5 @@
-function escapeRegex(str: string) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-export function hasTech(text: string, tech: string): boolean {
-  const escaped = escapeRegex(tech);
+export const hasTech = (text: string, tech: string): boolean => {
+  const escaped = tech.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const regex = new RegExp(`(^|\\W)${escaped}($|\\W)`, 'i');
   return regex.test(text);
-}
+};

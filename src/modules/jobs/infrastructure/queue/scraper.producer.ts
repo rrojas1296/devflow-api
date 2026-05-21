@@ -4,8 +4,8 @@ import { Queue } from 'bullmq';
 import {
   JOBS_QUEUE,
   SCRAPE_JOBS,
-} from 'src/infrastructure/queue/bullmq.config';
-import { ScraperDto } from '../../presentation/dtos/scraper.dto';
+} from 'src/infrastructure/bullmq/bullmq.config';
+import { ScraperDto } from '../../presentation/dtos/scraper-jobs.dto';
 
 @Injectable()
 export class JobsProducer {
