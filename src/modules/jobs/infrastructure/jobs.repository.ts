@@ -1,18 +1,15 @@
 import { Inject, Injectable } from '@nestjs/common';
-import {
-  Job,
-  jobs,
-  JobsCreateInput,
-} from 'src/infrastructure/database/drizzle/schemas/jobs.schema';
 import { type DrizzleDB } from 'src/infrastructure/database/drizzle/types/drizzle.types';
-import { IJobsRepository } from '../domain/jobs-repository.interface';
 import { desc, inArray } from 'drizzle-orm';
+import { jobs } from 'src/infrastructure/database/drizzle/schemas';
+import { IJobsRepository } from '../domain/interfaces/jobs-repository.interface';
+import { JobCreateInput, JobEntity } from '../domain/entities/job.entity';
 
 @Injectable()
 export class JobsRepository implements IJobsRepository {
   constructor(@Inject('DRIZZLE_DB') private db: DrizzleDB) {}
 
-  async getJobs(): Promise<Job[]> {
+  async getJobs(): Promise<JobEntity[]> {
     const data = await this.db
       .select()
       .from(jobs)
@@ -20,7 +17,7 @@ export class JobsRepository implements IJobsRepository {
     return data;
   }
 
-  async getJobsById(ids: string[]) {
+  async getJobsByIds(ids: string[]) {
     return this.db
       .select({
         id: jobs.id,
@@ -30,12 +27,12 @@ export class JobsRepository implements IJobsRepository {
       .where(inArray(jobs.externalId, ids));
   }
 
-  async createJob(data: JobsCreateInput): Promise<Job> {
+  async createJob(data: JobCreateInput): Promise<JobEntity> {
     const [newJob] = await this.db.insert(jobs).values(data).returning();
     return newJob;
   }
 
-  async bulkJobs(data: JobsCreateInput[]): Promise<Job[]> {
+  async bulkJobs(data: JobCreateInput[]): Promise<JobEntity[]> {
     const newJobs = await this.db.insert(jobs).values(data).returning();
     return newJobs;
   }

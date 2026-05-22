@@ -20,7 +20,7 @@ export class CreateJobDto {
 
   @IsString()
   @IsOptional()
-  imageUrl?: string;
+  imageUrl: string | null;
 
   @IsString()
   linkUrl: string;
@@ -37,4 +37,7 @@ export class CreateJobDto {
 
   @IsString()
   externalId: string;
+
+  @IsString()
+  source: string;
 }

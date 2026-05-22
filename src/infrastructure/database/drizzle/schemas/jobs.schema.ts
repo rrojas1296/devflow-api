@@ -22,12 +22,9 @@ export const jobs = pgTable('jobs', {
   modality: modalityEnum('modality').notNull().default('remote'),
   externalId: varchar('external_id').unique().notNull(),
   postedDate: timestamp('posted_date', { withTimezone: true }).notNull(),
-  source: text('source'),
+  source: text('source').notNull(),
   linkUrl: text('link_url'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 });
-
-export type JobsCreateInput = typeof jobs.$inferInsert;
-export type Job = typeof jobs.$inferSelect;

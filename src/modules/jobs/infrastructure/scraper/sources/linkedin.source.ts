@@ -1,20 +1,18 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import {
-  JobModality,
-  JobsCreateInput,
-} from 'src/infrastructure/database/drizzle/schemas';
 import sanitizeHtml from 'sanitize-html';
 import { chromium } from 'playwright';
 import { ManipulateType } from 'dayjs';
 import { STACK } from '../constants/stack.constants';
 import { hasTech } from 'src/shared/utils/hasTech';
 import path from 'path';
-import { ScraperData } from '../types/scraper-data.interface';
+import { JobModality } from 'src/infrastructure/database/drizzle/schemas';
+import { ScraperJobsCommand } from 'src/modules/jobs/application/commands/scrape-jobs.command';
+import { JobCreateInput } from 'src/modules/jobs/domain/entities/job.entity';
 
 @Injectable()
 export class LinkedinSource {
   name = 'linkedin';
-  async fetchJobs(data: ScraperData): Promise<JobsCreateInput[]> {
+  async fetchJobs(data: ScraperJobsCommand): Promise<JobCreateInput[]> {
     try {
       const url = new URL('https://www.linkedin.com/jobs/search-results');
       url.searchParams.append('keywords', data.keywords);
@@ -55,7 +53,7 @@ export class LinkedinSource {
 
       const count = await cards.count();
 
-      const dataJobs: JobsCreateInput[] = [];
+      const dataJobs: JobCreateInput[] = [];
 
       console.log(`=====> GETTING ${count - 3} JOBS`);
       for (let i = 0; i < count - 3; i++) {
@@ -153,7 +151,7 @@ export class LinkedinSource {
           location: job.location,
           externalId: job.jobId,
           stack: STACK.filter((s) => hasTech(description, s)),
-          imageUrl: job.imageUrl,
+          imageUrl: job.imageUrl ? job.imageUrl : null,
           modality: job.modality as JobModality,
           linkUrl,
           source: this.name,

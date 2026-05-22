@@ -5,8 +5,8 @@ import axios from 'axios';
 import { WithImplicitCoercion } from 'buffer';
 import { JOBS_QUEUE } from 'src/infrastructure/bullmq/bullmq.config';
 import { CloudinaryService } from 'src/infrastructure/cloudinary/cloudinary.service';
-import { ScraperData } from 'src/infrastructure/scraper/types/scraper-data.interface';
-import { ScraperService } from 'src/infrastructure/scraper/services/scraper.service';
+import { ScraperJobsCommand } from '../../application/commands/scrape-jobs.command';
+import { ScraperService } from '../../application/services/scraper.service';
 
 @Processor(JOBS_QUEUE)
 export class JobsProcessor extends WorkerHost {
@@ -18,13 +18,13 @@ export class JobsProcessor extends WorkerHost {
     super();
   }
 
-  async process(job: Job<ScraperData>) {
+  async process(job: Job<ScraperJobsCommand>) {
     try {
       const jobs = await this.scraper.scrape(job.data);
       console.log(`=====> FETCHED ${jobs?.length} JOBS`);
 
       const ids = jobs.map((j) => j.externalId);
-      const existingJobs = await this.repository.getJobsById(ids);
+      const existingJobs = await this.repository.getJobsByIds(ids);
 
       const newJobs = jobs.filter((j) => {
         const existingJob = existingJobs.find(
@@ -49,7 +49,7 @@ export class JobsProcessor extends WorkerHost {
             'binary',
           );
           const { url } = await this.cloudinary.uploadStream(buffer);
-          job.imageUrl = url;
+          job.imageUrl = url ? url : null;
         }
       }
       console.log(`=====> INSERTING ${newJobs?.length} JOBS`);

@@ -24,18 +24,18 @@ export class CloudinaryService {
 
   async uploadStream(
     buffer: Buffer,
-  ): Promise<{ url?: string; public_id?: string }> {
+  ): Promise<{ url: string; public_id: string }> {
     return new Promise((resolve, reject) => {
       cloudinary.uploader
         .upload_stream({ folder: 'devflow' }, (error, result) => {
           if (error) {
-            console.log({ error });
+            console.error(`=====> CLOUDINARY ERROR: ${error.message}`);
             return reject(error);
           }
 
           resolve({
-            url: result?.secure_url,
-            public_id: result?.public_id,
+            url: result?.secure_url ?? '',
+            public_id: result?.public_id ?? '',
           });
         })
         .end(buffer);
