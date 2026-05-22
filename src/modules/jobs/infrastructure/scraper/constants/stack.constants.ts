@@ -15,6 +15,7 @@ export const STACK = [
   'java',
   'javascript',
   'jest',
+  'jwt',
   'kubernetes',
   'mongo_db',
   'mysql',
@@ -29,11 +30,13 @@ export const STACK = [
   'react_native',
   'react_query',
   'redis',
+  'ruby',
   'supabase',
   'tailwindcss',
   'typescript',
   'vite',
   'vue',
   'zustand',
+  'ruby',
 ];
 export type Stack = (typeof STACK)[number];
