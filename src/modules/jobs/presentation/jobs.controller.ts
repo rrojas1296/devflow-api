@@ -2,15 +2,13 @@ import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
 import { CreateJobDto } from './dtos/create-job.dto';
 import { GetJobsUseCase } from '../application/use-cases/get-jobs.use-case';
 import { CreateJobUseCase } from '../application/use-cases/create-job.use-case';
-import { ScrapeJobsUseCase } from '../application/use-cases/scrape-jobs.use-case';
-import { ScraperDto } from './dtos/scraper-jobs.dto';
+import { JobCreateInput } from '../domain/entities/job.entity';
 
 @Controller('jobs')
 export class JobsController {
   constructor(
     private getJobsUseCase: GetJobsUseCase,
     private createJobUseCase: CreateJobUseCase,
-    private scrapeJobsUseCase: ScrapeJobsUseCase,
   ) {}
   @Get()
   async getJobs() {
@@ -25,21 +23,25 @@ export class JobsController {
 
   @Post()
   async createJob(@Body() data: CreateJobDto) {
-    const id = await this.createJobUseCase.execute(data);
+    const input: JobCreateInput = {
+      title: data.title,
+      description: data.description,
+      companyName: data.companyName,
+      location: data.location,
+      stack: data.stack,
+      imageUrl: data.imageUrl ?? null,
+      linkUrl: data.linkUrl,
+      modality: data.modality,
+      postedDate: data.postedDate,
+      externalId: data.externalId,
+      source: data.source,
+    };
+    const job = await this.createJobUseCase.execute(input);
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Job created successfully',
-      data: id,
-    };
-  }
-
-  @Post('scraper')
-  async scrape(@Body() dto: ScraperDto) {
-    await this.scrapeJobsUseCase.execute(dto);
-    return {
-      message: 'Jobs scrapper initialized',
-      statusCode: HttpStatus.OK,
+      data: job.id,
     };
   }
 }

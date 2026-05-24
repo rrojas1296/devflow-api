@@ -1,9 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { v2 as cloudinary } from 'cloudinary';
 import { environments } from 'src/config/env';
+import { IImageStorage } from './cloudinary-service.interface';
 
 @Injectable()
-export class CloudinaryService {
+export class CloudinaryService implements IImageStorage {
   constructor() {
     cloudinary.config({
       cloud_name: environments.CLOUDINARY_CLOUD_NAME,

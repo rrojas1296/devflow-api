@@ -1,2 +1,2 @@
-export const JOBS_QUEUE = 'jobs-queue';
-export const SCRAPE_JOBS = 'scrape-jobs';
+export const SCRAPER_QUEUE = 'jobs-queue';
+export const SCRAPER_JOBS = 'scrape-jobs';

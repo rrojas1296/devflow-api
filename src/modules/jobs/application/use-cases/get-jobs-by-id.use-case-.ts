@@ -3,9 +3,9 @@ import type { IJobsRepository } from '../../domain/interfaces/jobs-repository.in
 import { JOBS_REPOSITORY } from '../../domain/tokens/jobs.tokens';
 
 @Injectable()
-export class GetJobsUseCase {
-  constructor(@Inject(JOBS_REPOSITORY) private jobsRepo: IJobsRepository) {}
-  execute() {
-    return this.jobsRepo.getJobs();
+export class GetJobsByIdUseCase {
+  constructor(@Inject(JOBS_REPOSITORY) private repository: IJobsRepository) {}
+  execute(ids: string[]) {
+    return this.repository.getJobsByIds(ids);
   }
 }

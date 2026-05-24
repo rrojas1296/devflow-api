@@ -3,7 +3,12 @@ import { CloudinaryService } from './cloudinary.service';
 
 @Global()
 @Module({
-  providers: [CloudinaryService],
-  exports: [CloudinaryService],
+  providers: [
+    {
+      provide: 'IImageStorage',
+      useClass: CloudinaryService,
+    },
+  ],
+  exports: ['IImageStorage'],
 })
 export class CloudinaryModule {}

@@ -3,16 +3,17 @@ import sanitizeHtml from 'sanitize-html';
 import { chromium } from 'playwright';
 import { ManipulateType } from 'dayjs';
 import { STACK } from '../constants/stack.constants';
-import { hasTech } from 'src/shared/utils/hasTech';
 import path from 'path';
-import { JobModality } from 'src/infrastructure/database/drizzle/schemas';
-import { ScraperJobsCommand } from 'src/modules/jobs/application/commands/scrape-jobs.command';
 import { JobCreateInput } from 'src/modules/jobs/domain/entities/job.entity';
+import { Modality } from 'src/modules/jobs/domain/enums/modality.enum';
+import { IScraperSource } from 'src/modules/scraper/domain/interfaces/scraper-source.interface';
+import { ScraperJobsCommand } from 'src/modules/scraper/application/commands/scraper-jobs.command';
+import { hasTech } from '../../domain/helpers/hasTech';
 
 @Injectable()
-export class LinkedinSource {
-  name = 'linkedin';
-  async fetchJobs(data: ScraperJobsCommand): Promise<JobCreateInput[]> {
+export class LinkedinSource implements IScraperSource {
+  key = 'linkedin';
+  async fetch(data: ScraperJobsCommand): Promise<JobCreateInput[]> {
     try {
       const url = new URL('https://www.linkedin.com/jobs/search-results');
       url.searchParams.append('keywords', data.keywords);
@@ -155,9 +156,9 @@ export class LinkedinSource {
           externalId: job.jobId,
           stack: STACK.filter((s) => hasTech(description, s)),
           imageUrl: job.imageUrl ? job.imageUrl : null,
-          modality: job.modality as JobModality,
+          modality: job.modality as Modality,
           linkUrl,
-          source: this.name,
+          source: this.key,
           postedDate: new Date(job.postedDate),
         });
       }

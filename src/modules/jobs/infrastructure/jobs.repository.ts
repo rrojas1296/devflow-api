@@ -4,6 +4,7 @@ import { desc, inArray } from 'drizzle-orm';
 import { jobs } from 'src/infrastructure/database/drizzle/schemas';
 import { IJobsRepository } from '../domain/interfaces/jobs-repository.interface';
 import { JobCreateInput, JobEntity } from '../domain/entities/job.entity';
+import { JobMapper } from './mappers/job.mapper';
 
 @Injectable()
 export class JobsRepository implements IJobsRepository {
@@ -14,26 +15,24 @@ export class JobsRepository implements IJobsRepository {
       .select()
       .from(jobs)
       .orderBy(desc(jobs.postedDate));
-    return data;
+    return data.map((d) => JobMapper.toDomain(d));
   }
 
-  async getJobsByIds(ids: string[]) {
-    return this.db
-      .select({
-        id: jobs.id,
-        externalId: jobs.externalId,
-      })
+  async getJobsByIds(ids: string[]): Promise<JobEntity[]> {
+    const data = await this.db
+      .select()
       .from(jobs)
       .where(inArray(jobs.externalId, ids));
+    return data.map((d) => JobMapper.toDomain(d));
   }
 
   async createJob(data: JobCreateInput): Promise<JobEntity> {
     const [newJob] = await this.db.insert(jobs).values(data).returning();
-    return newJob;
+    return JobMapper.toDomain(newJob);
   }
 
   async bulkJobs(data: JobCreateInput[]): Promise<JobEntity[]> {
     const newJobs = await this.db.insert(jobs).values(data).returning();
-    return newJobs;
+    return newJobs.map((d) => JobMapper.toDomain(d));
   }
 }

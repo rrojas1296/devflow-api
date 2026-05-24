@@ -1,8 +1,8 @@
-import { JobEntity } from '../entities/job.entity';
+import { JobCreateInput, JobEntity } from '../entities/job.entity';
 
 export interface IJobsRepository {
   getJobs(): Promise<JobEntity[]>;
-  getJobsByIds(ids: string[]): Promise<{ id: string; externalId: string }[]>;
-  createJob(data: any): Promise<JobEntity>;
-  bulkJobs(data: any): Promise<JobEntity[]>;
+  getJobsByIds(ids: string[]): Promise<JobEntity[]>;
+  createJob(data: JobCreateInput): Promise<JobEntity>;
+  bulkJobs(data: JobCreateInput[]): Promise<JobEntity[]>;
 }

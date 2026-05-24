@@ -1,5 +1,5 @@
 import { IsArray, IsBoolean, IsOptional, IsString } from 'class-validator';
-import { type JobModality } from 'src/infrastructure/database/drizzle/schemas';
+import type { Modality } from 'src/modules/jobs/domain/enums/modality.enum';
 
 export class CreateJobDto {
   @IsString()
@@ -26,7 +26,7 @@ export class CreateJobDto {
   linkUrl: string;
 
   @IsString()
-  modality: JobModality;
+  modality: Modality;
 
   @IsBoolean()
   @IsOptional()
