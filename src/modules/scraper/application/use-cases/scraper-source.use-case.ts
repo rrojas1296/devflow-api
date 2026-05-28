@@ -1,16 +1,16 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ScraperJobsCommand } from '../commands/scraper-jobs.command';
-import type { IScraperSource } from '../../domain/interfaces/scraper-source.interface';
 import { SCRAPER_SOURCES } from '../../domain/tokens/scraper.tokens';
+import type { IScraperSource } from '../../domain/ports/scraper-source.port';
+import { ScraperJobsInput } from '../dto/scraper-jobs.input';
 
 @Injectable()
-export class ScraperOrchestrator {
+export class ScraperSourceUseCase {
   constructor(
     @Inject(SCRAPER_SOURCES)
     private readonly sources: IScraperSource[],
   ) {}
 
-  scrape(data: ScraperJobsCommand) {
+  scrape(data: ScraperJobsInput) {
     const source = this.sources.find((s) => s.key === data.source);
 
     if (!source) {

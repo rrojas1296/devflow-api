@@ -2,9 +2,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import { type DrizzleDB } from 'src/infrastructure/database/drizzle/types/drizzle.types';
 import { desc, inArray } from 'drizzle-orm';
 import { jobs } from 'src/infrastructure/database/drizzle/schemas';
-import { IJobsRepository } from '../domain/interfaces/jobs-repository.interface';
 import { JobCreateInput, JobEntity } from '../domain/entities/job.entity';
 import { JobMapper } from './mappers/job.mapper';
+import { IJobsRepository } from '../domain/ports/jobs-repository.port';
 
 @Injectable()
 export class JobsRepository implements IJobsRepository {

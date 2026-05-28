@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { ScraperJobsCommand } from '../commands/scraper-jobs.command';
-import type { IScraperProducer } from '../../domain/interfaces/scraper-producer.interface';
 import { SCRAPER_PRODUCER } from '../../domain/tokens/scraper.tokens';
+import { ScraperJobsInput } from '../dto/scraper-jobs.input';
+import type { IScraperProducer } from '../../domain/ports/scraper-producer.port';
 
 @Injectable()
 export class ScraperJobsUseCase {
@@ -9,7 +9,7 @@ export class ScraperJobsUseCase {
     @Inject(SCRAPER_PRODUCER) private readonly producer: IScraperProducer,
   ) {}
 
-  async execute(data: ScraperJobsCommand) {
+  async execute(data: ScraperJobsInput) {
     await this.producer.scrapeJobs(data);
   }
 }

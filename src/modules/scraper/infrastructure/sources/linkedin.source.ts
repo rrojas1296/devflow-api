@@ -6,23 +6,22 @@ import { STACK } from '../constants/stack.constants';
 import path from 'path';
 import { JobCreateInput } from 'src/modules/jobs/domain/entities/job.entity';
 import { Modality } from 'src/modules/jobs/domain/enums/modality.enum';
-import { IScraperSource } from 'src/modules/scraper/domain/interfaces/scraper-source.interface';
-import { ScraperJobsCommand } from 'src/modules/scraper/application/commands/scraper-jobs.command';
-import { hasTech } from '../../domain/helpers/hasTech';
+import type { IScraperSource } from '../../domain/ports/scraper-source.port';
+import { ScraperJobsInput } from '../../application/dto/scraper-jobs.input';
+import { hasTech } from '../../application/utils/has-tech';
 
 @Injectable()
 export class LinkedinSource implements IScraperSource {
   key = 'linkedin';
-  async fetch(data: ScraperJobsCommand): Promise<JobCreateInput[]> {
+  async fetch(data: ScraperJobsInput): Promise<JobCreateInput[]> {
     try {
       const dataPath = path.resolve(process.cwd(), 'storageSession.json');
-      console.log(`=====> INIT PLAYWRIGHT`);
+      console.log(`=====> Initializing scrapping linkedin`);
 
       const browser = await chromium.launch({
         headless: true,
       });
 
-      //Add user agent to avoid bot detection
       const context = await browser.newContext({
         storageState: dataPath,
         userAgent:
@@ -35,6 +34,7 @@ export class LinkedinSource implements IScraperSource {
       const totalPages = 10;
 
       for (let i = 0; i < totalPages; i++) {
+        console.log('=====> Page ', i + 1);
         const url = new URL('https://www.linkedin.com/jobs/search-results');
         url.searchParams.append('keywords', data.keywords);
         url.searchParams.append('origin', 'JOB_COLLECTION_PAGE_SEARCH_BUTTON');
@@ -68,7 +68,7 @@ export class LinkedinSource implements IScraperSource {
 
         const totalCards = await cards.count();
 
-        console.log(`=====> GETTING 25 JOBS`);
+        console.log(`=====> ${totalCards - 1} cards found`);
         for (let i = 0; i < totalCards - 1; i++) {
           const card = cards.nth(i);
           await card.click();

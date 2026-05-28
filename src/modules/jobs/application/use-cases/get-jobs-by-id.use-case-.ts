@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { IJobsRepository } from '../../domain/interfaces/jobs-repository.interface';
 import { JOBS_REPOSITORY } from '../../domain/tokens/jobs.tokens';
+import type { IJobsRepository } from '../../domain/ports/jobs-repository.port';
 
 @Injectable()
 export class GetJobsByIdUseCase {

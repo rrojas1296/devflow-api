@@ -1,9 +1,9 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { IImageStorage } from 'src/infrastructure/cloudinary/cloudinary-service.interface';
-import axios from 'axios';
 import { JobCreateInput } from 'src/modules/jobs/domain/entities/job.entity';
 import { BulkJobsUseCase } from 'src/modules/jobs/application/use-cases/bulk-jobs.use-case-';
 import { GetJobsByIdUseCase } from 'src/modules/jobs/application/use-cases/get-jobs-by-id.use-case-';
+import type { IImageStorage } from 'src/infrastructure/cloudinary/cloudinary-service.interface';
+import axios from 'axios';
 
 @Injectable()
 export class ProccessDataUseCase {
@@ -23,7 +23,7 @@ export class ProccessDataUseCase {
       return !existingJob;
     });
 
-    console.log(`=====> DOWNLOADING ${newJobs?.length} IMAGES`);
+    console.log(`=====> Downloading ${newJobs?.length} images`);
     for (const job of newJobs) {
       if (job.imageUrl) {
         try {
@@ -45,9 +45,9 @@ export class ProccessDataUseCase {
       }
     }
 
-    console.log(`=====> INSERTING ${newJobs?.length} JOBS`);
+    console.log(`=====> Inserting ${newJobs?.length} jobs`);
     await this.bulkJobsUseCase.execute(newJobs);
-    console.log(`=====> FINISHED : ${newJobs?.length} JOBS INSERTED`);
+    console.log(`=====> Finished : ${newJobs?.length} jobs inserted`);
 
     return { inserted: newJobs.length };
   }

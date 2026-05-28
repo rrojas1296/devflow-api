@@ -3,10 +3,7 @@ import { JobsModule } from '../jobs/jobs.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ScraperJobsUseCase } from './application/use-cases/scrape-jobs.use-case';
 import { ProccessDataUseCase } from './application/use-cases/proccess-data.use-case';
-import { ScraperProducer } from './infrastructure/scraper.producer';
-import { ScraperProcessor } from './infrastructure/scraper.processor';
 import { CloudinaryModule } from 'src/infrastructure/cloudinary/cloudinary.module';
-import { ScraperOrchestrator } from './application/services/scraper.orchestrator';
 import { LinkedinSource } from './infrastructure/sources/linkedin.source';
 import { ScraperController } from './presentation/scraper.controller';
 import { SCRAPER_QUEUE } from 'src/infrastructure/bullmq/bullmq.config';
@@ -14,11 +11,14 @@ import {
   SCRAPER_PRODUCER,
   SCRAPER_SOURCES,
 } from './domain/tokens/scraper.tokens';
+import { ScraperSourceUseCase } from './application/use-cases/scraper-source.use-case';
+import { ScraperProducer } from './infrastructure/queue/scraper.producer';
+import { ScraperProcessor } from './infrastructure/queue/scraper.processor';
 
 const USE_CASES: Provider[] = [
   ProccessDataUseCase,
   ScraperJobsUseCase,
-  ScraperOrchestrator,
+  ScraperSourceUseCase,
   {
     provide: SCRAPER_PRODUCER,
     useClass: ScraperProducer,

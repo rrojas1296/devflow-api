@@ -5,13 +5,14 @@ import {
   SCRAPER_JOBS,
   SCRAPER_QUEUE,
 } from 'src/infrastructure/bullmq/bullmq.config';
-import { ScraperJobsCommand } from '../application/commands/scraper-jobs.command';
+import type { IScraperProducer } from '../../domain/ports/scraper-producer.port';
+import { ScraperJobsInput } from '../../application/dto/scraper-jobs.input';
 
 @Injectable()
-export class ScraperProducer {
+export class ScraperProducer implements IScraperProducer {
   constructor(@InjectQueue(SCRAPER_QUEUE) private queue: Queue) {}
 
-  async scrapeJobs(data: ScraperJobsCommand) {
+  async scrapeJobs(data: ScraperJobsInput) {
     await this.queue.add(SCRAPER_JOBS, data, {
       removeOnComplete: true,
     });
