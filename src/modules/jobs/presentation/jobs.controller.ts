@@ -1,8 +1,10 @@
-import { Body, Controller, Get, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, Post, Query } from '@nestjs/common';
 import { CreateJobDto } from './dtos/create-job.dto';
 import { GetJobsUseCase } from '../application/use-cases/get-jobs.use-case';
 import { CreateJobUseCase } from '../application/use-cases/create-job.use-case';
 import { JobCreateInput } from '../domain/entities/job.entity';
+import { ManipulateType } from 'dayjs';
+import type { Modality } from '../domain/enums/modality.enum';
 
 @Controller('jobs')
 export class JobsController {
@@ -11,8 +13,20 @@ export class JobsController {
     private createJobUseCase: CreateJobUseCase,
   ) {}
   @Get()
-  async getJobs() {
-    const data = await this.getJobsUseCase.execute();
+  async getJobs(
+    @Query('location') location: string,
+    @Query('technologies') technologies: string[],
+    @Query('publicationDate') publicationDate: ManipulateType | 'all',
+    @Query('modality') modality: Modality | 'all',
+    @Query('search') search?: string,
+  ) {
+    const data = await this.getJobsUseCase.execute(
+      location,
+      technologies,
+      publicationDate,
+      modality,
+      search,
+    );
 
     return {
       statusCode: HttpStatus.OK,
