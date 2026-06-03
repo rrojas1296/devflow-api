@@ -8,12 +8,14 @@ import { DrizzleModule } from 'src/infrastructure/database/drizzle/drizzle.modul
 import { GetJobsByIdUseCase } from './application/use-cases/get-jobs-by-id.use-case-';
 import { BulkJobsUseCase } from './application/use-cases/bulk-jobs.use-case-';
 import { JOBS_REPOSITORY } from './domain/tokens/jobs.tokens';
+import { GetLocationsUseCase } from './application/use-cases/get-locations.use-case';
 
 const USE_CASES: Provider[] = [
   CreateJobUseCase,
   GetJobsUseCase,
   GetJobsByIdUseCase,
   BulkJobsUseCase,
+  GetLocationsUseCase,
 ];
 const REPOSITORIES: Provider[] = [
   {

@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import sanitizeHtml from 'sanitize-html';
 import { chromium } from 'playwright';
 import { ManipulateType } from 'dayjs';
-import { STACK } from '../constants/stack.constants';
+import { TECH_ALIASES } from '../constants/stack.constants';
 import path from 'path';
 import { JobCreateInput } from 'src/modules/jobs/domain/entities/job.entity';
 import { Modality } from 'src/modules/jobs/domain/enums/modality.enum';
@@ -19,7 +19,7 @@ export class LinkedinSource implements IScraperSource {
       console.log(`=====> Initializing scrapping linkedin`);
 
       const browser = await chromium.launch({
-        headless: true,
+        headless: false,
       });
 
       const context = await browser.newContext({
@@ -164,9 +164,11 @@ export class LinkedinSource implements IScraperSource {
             title: job.title,
             description: sanitizedDescription,
             companyName: job.companyName,
-            location: job.location,
+            location: job.location.replace(',', '-'),
             externalId: job.jobId,
-            stack: STACK.filter((s) => hasTech(description, s)),
+            stack: Object.keys(TECH_ALIASES).filter((s) =>
+              hasTech(description, s),
+            ),
             imageUrl: job.imageUrl ? job.imageUrl : null,
             modality: job.modality as Modality,
             linkUrl,

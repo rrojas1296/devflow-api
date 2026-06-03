@@ -7,19 +7,29 @@ import { Modality } from '../../domain/enums/modality.enum';
 @Injectable()
 export class GetJobsUseCase {
   constructor(@Inject(JOBS_REPOSITORY) private jobsRepo: IJobsRepository) {}
-  execute(
-    location: string,
-    technologies: string[],
-    publicationDate: ManipulateType | 'all',
-    modality: Modality | 'all',
-    search?: string,
-  ) {
-    return this.jobsRepo.getJobs(
-      location,
-      technologies,
-      publicationDate,
-      modality,
+  execute({
+    location,
+    technologies,
+    publicationDate,
+    modality,
+    source,
+    search,
+  }: {
+    location?: string;
+    technologies?: string;
+    publicationDate?: string;
+    modality?: string;
+    source?: string;
+    search?: string;
+  }) {
+    const data = {
+      location: location?.split(',') || [],
+      technologies: technologies?.split(',') || [],
+      publicationDate: publicationDate as ManipulateType | undefined,
+      modality: (modality?.split(',') || []) as Modality[],
+      source: source?.split(',') || [],
       search,
-    );
+    };
+    return this.jobsRepo.getJobs(data);
   }
 }

@@ -3,34 +3,46 @@ import { CreateJobDto } from './dtos/create-job.dto';
 import { GetJobsUseCase } from '../application/use-cases/get-jobs.use-case';
 import { CreateJobUseCase } from '../application/use-cases/create-job.use-case';
 import { JobCreateInput } from '../domain/entities/job.entity';
-import { ManipulateType } from 'dayjs';
-import type { Modality } from '../domain/enums/modality.enum';
+import { GetLocationsUseCase } from '../application/use-cases/get-locations.use-case';
 
 @Controller('jobs')
 export class JobsController {
   constructor(
     private getJobsUseCase: GetJobsUseCase,
     private createJobUseCase: CreateJobUseCase,
+    private getLocationsUseCase: GetLocationsUseCase,
   ) {}
   @Get()
   async getJobs(
-    @Query('location') location: string,
-    @Query('technologies') technologies: string[],
-    @Query('publicationDate') publicationDate: ManipulateType | 'all',
-    @Query('modality') modality: Modality | 'all',
+    @Query('location') location?: string,
+    @Query('technologies') technologies?: string,
+    @Query('publicationDate') publicationDate?: string,
+    @Query('modality') modality?: string,
+    @Query('source') source?: string,
     @Query('search') search?: string,
   ) {
-    const data = await this.getJobsUseCase.execute(
+    const data = await this.getJobsUseCase.execute({
       location,
       technologies,
       publicationDate,
       modality,
+      source,
       search,
-    );
+    });
 
     return {
       statusCode: HttpStatus.OK,
       message: 'Jobs fetched successfully',
+      data,
+    };
+  }
+
+  @Get('locations')
+  async getLocations() {
+    const data = await this.getLocationsUseCase.execute();
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Locations fetched successfully',
       data,
     };
   }

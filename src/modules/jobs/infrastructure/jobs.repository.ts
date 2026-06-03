@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { type DrizzleDB } from 'src/infrastructure/database/drizzle/types/drizzle.types';
-import { and, arrayOverlaps, eq, gte, ilike, inArray, SQL } from 'drizzle-orm';
+import { and, desc, gte, ilike, inArray, sql, SQL } from 'drizzle-orm';
 import { jobs } from 'src/infrastructure/database/drizzle/schemas';
 import { JobCreateInput, JobEntity } from '../domain/entities/job.entity';
 import { JobMapper } from './mappers/job.mapper';
@@ -12,30 +12,48 @@ import dayjs, { ManipulateType } from 'dayjs';
 export class JobsRepository implements IJobsRepository {
   constructor(@Inject('DRIZZLE_DB') private db: DrizzleDB) {}
 
-  async getJobs(
-    location: string,
-    technologies: string[],
-    publicationDate: ManipulateType | 'all',
-    modality: Modality | 'all',
-    search?: string,
-  ): Promise<JobEntity[]> {
+  async getJobs(data: {
+    location: string[];
+    technologies: string[];
+    publicationDate?: ManipulateType;
+    modality: Modality[];
+    source: string[];
+    search?: string;
+  }): Promise<JobEntity[]> {
+    const {
+      search,
+      location,
+      modality,
+      technologies,
+      publicationDate,
+      source,
+    } = data;
     const conditions: SQL[] = [];
     if (search) {
       conditions.push(ilike(jobs.title, `%${search}%`));
     }
 
-    if (location !== 'all') {
-      conditions.push(ilike(jobs.location, `%${location}%`));
+    if (location.length > 0) {
+      conditions.push(inArray(jobs.location, location));
     }
-    if (modality !== 'all') {
-      conditions.push(eq(jobs.modality, modality));
-    }
-
-    if (technologies.length && !technologies.includes('all')) {
-      conditions.push(arrayOverlaps(jobs.stack, technologies));
+    if (modality.length > 0) {
+      conditions.push(inArray(jobs.modality, modality));
     }
 
-    if (publicationDate !== 'all') {
+    if (technologies.length > 0) {
+      conditions.push(
+        sql`${jobs.stack} @> ARRAY[${sql.join(
+          technologies.map((t) => sql`${t}`),
+          sql`, `,
+        )}]::text[]`,
+      );
+    }
+
+    if (source.length > 0) {
+      conditions.push(inArray(jobs.source, source));
+    }
+
+    if (publicationDate) {
       const fromDate = dayjs().subtract(1, publicationDate).toDate();
       conditions.push(gte(jobs.postedDate, fromDate));
     }
@@ -43,7 +61,15 @@ export class JobsRepository implements IJobsRepository {
     return this.db
       .select()
       .from(jobs)
-      .where(and(...conditions));
+      .where(and(...conditions))
+      .orderBy(desc(jobs.postedDate));
+  }
+
+  async getLocations(): Promise<string[]> {
+    const data = await this.db
+      .selectDistinct({ location: jobs.location })
+      .from(jobs);
+    return data.map((d) => d.location);
   }
 
   async getJobsByIds(ids: string[]): Promise<JobEntity[]> {
