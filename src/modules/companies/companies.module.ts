@@ -21,6 +21,7 @@ import { GetCompaniesUseCase } from './application/use-cases/get-companies.use-c
     GetCompaniesByNamesUseCase,
     BulkCompaniesUseCase,
     GetCompaniesUseCase,
+    COMPANIES_REPOSITORY,
   ],
 })
 export class CompaniesModule {}

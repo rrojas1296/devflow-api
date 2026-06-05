@@ -17,6 +17,12 @@ export class ScraperSourceUseCase {
       throw new Error(`Source ${data.source} not found`);
     }
 
-    return source.fetch(data);
+    const request = {
+      source: data.source,
+      keywords: data.keywords,
+      modality: data.modality,
+    };
+
+    return source.fetch(request);
   }
 }

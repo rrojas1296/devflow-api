@@ -5,14 +5,14 @@ import { ManipulateType } from 'dayjs';
 import { TECH_ALIASES } from '../constants/stack.constants';
 import path from 'path';
 import type { IScraperSource } from '../../domain/ports/scraper-source.port';
-import { ScraperJobsInput } from '../../application/dto/scraper-jobs.input';
+import type { ScrapeRequest } from '../../domain/ports/scraper-producer.port';
 import { hasTech } from '../../application/utils/has-tech';
 import { SourceJobResult } from '../../domain/interfaces/source-job-result.interface';
 
 @Injectable()
 export class LinkedinSource implements IScraperSource {
   key = 'linkedin';
-  async fetch(data: ScraperJobsInput): Promise<SourceJobResult[]> {
+  async fetch(data: ScrapeRequest): Promise<SourceJobResult[]> {
     try {
       const dataPath = path.resolve(process.cwd(), 'storageSession.json');
       console.log(`=====> Initializing scrapping linkedin`);

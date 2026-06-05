@@ -3,7 +3,7 @@ import { type DrizzleDB } from 'src/infrastructure/database/drizzle/types/drizzl
 import { inArray } from 'drizzle-orm';
 import { jobs } from 'src/infrastructure/database/drizzle/schemas';
 import { JobCreateInput, JobEntity } from '../domain/entities/job.entity';
-import { JobMapper } from './mappers/job.mapper';
+import { JobMapper, type KnexJobRaw } from './mappers/job.mapper';
 import { IJobsRepository } from '../domain/ports/jobs-repository.port';
 import { Modality } from '../domain/enums/modality.enum';
 import dayjs, { ManipulateType } from 'dayjs';
@@ -51,6 +51,7 @@ export class JobsRepository implements IJobsRepository {
         'j.created_at as createdAt',
         'j.updated_at as updatedAt',
         'j.deleted_at as deletedAt',
+        'j.company_id as companyId',
         'c.name as companyName',
         'c.image_url as imageUrl',
         this.knex.db.raw(
@@ -89,7 +90,9 @@ export class JobsRepository implements IJobsRepository {
     }
     const dataDB = await query;
 
-    return dataDB as JobEntity[];
+    return (dataDB as unknown as KnexJobRaw[]).map((raw) =>
+      JobMapper.fromKnexRaw(raw),
+    );
   }
 
   async getLocations(): Promise<string[]> {

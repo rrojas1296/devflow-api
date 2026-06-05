@@ -1,36 +1,41 @@
 import { Inject, Injectable } from '@nestjs/common';
-import axios from 'axios';
 import type { IImageStorage } from 'src/infrastructure/cloudinary/cloudinary-service.interface';
 import { IMAGE_STORAGE } from 'src/infrastructure/cloudinary/cloudinary.tokens';
-import { BulkCompaniesUseCase } from 'src/modules/companies/application/use-cases/bulk-companies.use-case';
-import { GetCompaniesByNamesUseCase } from 'src/modules/companies/application/use-cases/get-companies-by-names';
+import { COMPANIES_REPOSITORY } from 'src/modules/companies/domain/tokens/companies.tokens';
+import type { CompaniesRepositoryPort } from 'src/modules/companies/domain/ports/companies-repository.port';
 import { CompanyCreateInput } from 'src/modules/companies/domain/entities/companies.entity';
+import { HTTP_CLIENT } from '../../domain/ports/http-client.port';
+import type { IHttpClient } from '../../domain/ports/http-client.port';
 import { SourceJobResult } from '../../domain/interfaces/source-job-result.interface';
+import type { ICompanyProcessor } from '../../domain/ports/company-processor.port';
 
 @Injectable()
-export class ProcessCompaniesUseCase {
+export class ProcessCompaniesUseCase implements ICompanyProcessor {
   constructor(
-    @Inject(IMAGE_STORAGE) private readonly imageStorage: IImageStorage,
-    private readonly bulkCompaniesUseCase: BulkCompaniesUseCase,
-    private readonly getCompaniesByNamesUseCase: GetCompaniesByNamesUseCase,
+    @Inject(COMPANIES_REPOSITORY)
+    private readonly companiesRepo: CompaniesRepositoryPort,
+    @Inject(IMAGE_STORAGE)
+    private readonly imageStorage: IImageStorage,
+    @Inject(HTTP_CLIENT)
+    private readonly httpClient: IHttpClient,
   ) {}
 
   async execute(newJobs: SourceJobResult[]) {
     const names = newJobs.map((nj) => nj.companyName);
     const existingCompaniesDB =
-      await this.getCompaniesByNamesUseCase.execute(names);
+      await this.companiesRepo.getCompaniesByNames(names);
 
     const companiesToCreate: CompanyCreateInput[] = newJobs
-      .map((nj) => {
+      .map((nj): CompanyCreateInput | undefined => {
         const c = existingCompaniesDB.find((c) => c.name === nj.companyName);
-        if (c) return;
+        if (c) return undefined;
         return {
           name: nj.companyName,
           imageUrl: nj.imageUrl,
           description: null,
         };
       })
-      .filter((c) => c !== undefined);
+      .filter((c): c is CompanyCreateInput => c !== undefined);
 
     const imageLength = companiesToCreate.filter(
       (ctc) => ctc.imageUrl !== null,
@@ -40,20 +45,13 @@ export class ProcessCompaniesUseCase {
 
     for (const company of companiesToCreate) {
       if (company.imageUrl === null) continue;
-      const response = await axios.get(company.imageUrl, {
-        responseType: 'arraybuffer',
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36',
-          Accept: 'image/',
-        },
-      });
-      const buffer = Buffer.from(response.data as string, 'binary');
+      const buffer = await this.httpClient.getBuffer(company.imageUrl);
       const { url } = await this.imageStorage.uploadStream(buffer);
       company.imageUrl = url;
     }
     console.log(`=====> Creating ${companiesToCreate.length} companies`);
     const newCompanies =
-      await this.bulkCompaniesUseCase.execute(companiesToCreate);
+      await this.companiesRepo.bulkCompanies(companiesToCreate);
     const companiesDB = [...existingCompaniesDB, ...newCompanies];
 
     return companiesDB;

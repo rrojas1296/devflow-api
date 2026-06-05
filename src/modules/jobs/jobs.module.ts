@@ -28,6 +28,6 @@ const REPOSITORIES: Provider[] = [
   imports: [DrizzleModule, QueueModule],
   controllers: [JobsController],
   providers: [...USE_CASES, ...REPOSITORIES],
-  exports: [GetJobsByIdUseCase, BulkJobsUseCase],
+  exports: [GetJobsByIdUseCase, BulkJobsUseCase, JOBS_REPOSITORY],
 })
 export class JobsModule {}

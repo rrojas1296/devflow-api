@@ -16,6 +16,15 @@ import { ScraperProducer } from './infrastructure/queue/scraper.producer';
 import { ScraperProcessor } from './infrastructure/queue/scraper.processor';
 import { CompaniesModule } from '../companies/companies.module';
 import { ProcessCompaniesUseCase } from './application/use-cases/process-companies.use-case';
+import { AxiosHttpClient } from './infrastructure/adapters/axios-http-client.adapter';
+import { HTTP_CLIENT } from './domain/ports/http-client.port';
+import {
+  COMPANY_PROCESSOR,
+  ICompanyProcessor,
+} from './domain/ports/company-processor.port';
+import { JobScraperService } from './domain/services/job-scraper.service';
+import { JOBS_REPOSITORY } from 'src/modules/jobs/domain/tokens/jobs.tokens';
+import type { IJobsRepository } from 'src/modules/jobs/domain/ports/jobs-repository.port';
 
 const USE_CASES: Provider[] = [
   ProccessDataUseCase,
@@ -30,6 +39,22 @@ const USE_CASES: Provider[] = [
     provide: SCRAPER_SOURCES,
     useFactory: (linkedin: LinkedinSource) => [linkedin],
     inject: [LinkedinSource],
+  },
+  {
+    provide: HTTP_CLIENT,
+    useClass: AxiosHttpClient,
+  },
+  {
+    provide: COMPANY_PROCESSOR,
+    useExisting: ProcessCompaniesUseCase,
+  },
+  {
+    provide: JobScraperService,
+    useFactory: (
+      jobsRepo: IJobsRepository,
+      companyProcessor: ICompanyProcessor,
+    ) => new JobScraperService(jobsRepo, companyProcessor),
+    inject: [JOBS_REPOSITORY, COMPANY_PROCESSOR],
   },
 ];
 

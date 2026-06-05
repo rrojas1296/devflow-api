@@ -1,4 +1,8 @@
-import { CompanyEntity } from 'src/modules/companies/domain/entities/companies.entity';
+export interface JobCompany {
+  id: string;
+  name: string;
+  imageUrl: string | null;
+}
 
 export interface JobEntity {
   id: string;
@@ -13,7 +17,7 @@ export interface JobEntity {
   source: string;
   companyId: string;
   linkUrl: string | null;
-  company?: CompanyEntity;
+  company?: JobCompany;
   createdAt: Date | null;
   updatedAt: Date | null;
   deletedAt: Date | null;
@@ -21,5 +25,5 @@ export interface JobEntity {
 
 export type JobCreateInput = Omit<
   JobEntity,
-  'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'isDeleted'
+  'id' | 'createdAt' | 'updatedAt' | 'deletedAt' | 'isDeleted' | 'company'
 >;

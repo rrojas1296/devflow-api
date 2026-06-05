@@ -13,11 +13,12 @@ import { CompanyMapper } from '../mappers/companies.mapper';
 @Injectable()
 export class CompaniesRepository implements CompaniesRepositoryPort {
   constructor(@Inject(DRIZZLE_TOKEN) private db: DrizzleDB) {}
-  async getCompaniesByNames(names: string[]): Promise<any> {
-    return this.db
+  async getCompaniesByNames(names: string[]): Promise<CompanyEntity[]> {
+    const data = await this.db
       .select()
       .from(companies)
       .where(inArray(companies.name, names));
+    return data.map((d) => CompanyMapper.toDomain(d));
   }
 
   async getCompanies(): Promise<CompanyEntity[]> {
