@@ -1,17 +1,19 @@
+import { CompanyEntity } from 'src/modules/companies/domain/entities/companies.entity';
+
 export interface JobEntity {
   id: string;
   title: string;
   description: string;
-  companyName: string;
   location: string;
   stack: string[];
   isDeleted: boolean;
-  imageUrl: string | null;
   modality: 'onsite' | 'remote' | 'hybrid';
   externalId: string;
   postedDate: Date;
   source: string;
+  companyId: string;
   linkUrl: string | null;
+  company?: CompanyEntity;
   createdAt: Date | null;
   updatedAt: Date | null;
   deletedAt: Date | null;

@@ -4,22 +4,21 @@ import { chromium } from 'playwright';
 import { ManipulateType } from 'dayjs';
 import { TECH_ALIASES } from '../constants/stack.constants';
 import path from 'path';
-import { JobCreateInput } from 'src/modules/jobs/domain/entities/job.entity';
-import { Modality } from 'src/modules/jobs/domain/enums/modality.enum';
 import type { IScraperSource } from '../../domain/ports/scraper-source.port';
 import { ScraperJobsInput } from '../../application/dto/scraper-jobs.input';
 import { hasTech } from '../../application/utils/has-tech';
+import { SourceJobResult } from '../../domain/interfaces/source-job-result.interface';
 
 @Injectable()
 export class LinkedinSource implements IScraperSource {
   key = 'linkedin';
-  async fetch(data: ScraperJobsInput): Promise<JobCreateInput[]> {
+  async fetch(data: ScraperJobsInput): Promise<SourceJobResult[]> {
     try {
       const dataPath = path.resolve(process.cwd(), 'storageSession.json');
       console.log(`=====> Initializing scrapping linkedin`);
 
       const browser = await chromium.launch({
-        headless: false,
+        headless: true,
       });
 
       const context = await browser.newContext({
@@ -28,10 +27,10 @@ export class LinkedinSource implements IScraperSource {
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/237.84.2.178 Safari/537.36',
         viewport: { width: 1280, height: 800 },
       });
-      const dataJobs: JobCreateInput[] = [];
+      const dataJobs: SourceJobResult[] = [];
       const page = await context.newPage();
       const pageCount = 25;
-      const totalPages = 10;
+      const totalPages = 1;
 
       for (let i = 0; i < totalPages; i++) {
         console.log('=====> Page ', i + 1);
@@ -170,7 +169,7 @@ export class LinkedinSource implements IScraperSource {
               hasTech(description, s),
             ),
             imageUrl: job.imageUrl ? job.imageUrl : null,
-            modality: job.modality as Modality,
+            modality: job.modality,
             linkUrl,
             source: this.key,
             postedDate: new Date(job.postedDate),

@@ -14,9 +14,12 @@ import {
 import { ScraperSourceUseCase } from './application/use-cases/scraper-source.use-case';
 import { ScraperProducer } from './infrastructure/queue/scraper.producer';
 import { ScraperProcessor } from './infrastructure/queue/scraper.processor';
+import { CompaniesModule } from '../companies/companies.module';
+import { ProcessCompaniesUseCase } from './application/use-cases/process-companies.use-case';
 
 const USE_CASES: Provider[] = [
   ProccessDataUseCase,
+  ProcessCompaniesUseCase,
   ScraperJobsUseCase,
   ScraperSourceUseCase,
   {
@@ -37,6 +40,7 @@ const BULLMQ: Provider[] = [ScraperProcessor];
 @Module({
   imports: [
     JobsModule,
+    CompaniesModule,
     CloudinaryModule,
     BullModule.registerQueue({
       name: SCRAPER_QUEUE,

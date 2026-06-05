@@ -1,14 +1,15 @@
 import { Global, Module } from '@nestjs/common';
 import { CloudinaryService } from './cloudinary.service';
+import { IMAGE_STORAGE } from './cloudinary.tokens';
 
 @Global()
 @Module({
   providers: [
     {
-      provide: 'IImageStorage',
+      provide: IMAGE_STORAGE,
       useClass: CloudinaryService,
     },
   ],
-  exports: ['IImageStorage'],
+  exports: [IMAGE_STORAGE],
 })
 export class CloudinaryModule {}

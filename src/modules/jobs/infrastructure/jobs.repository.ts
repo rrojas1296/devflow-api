@@ -1,16 +1,22 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { type DrizzleDB } from 'src/infrastructure/database/drizzle/types/drizzle.types';
-import { and, desc, gte, ilike, inArray, sql, SQL } from 'drizzle-orm';
+import { inArray } from 'drizzle-orm';
 import { jobs } from 'src/infrastructure/database/drizzle/schemas';
 import { JobCreateInput, JobEntity } from '../domain/entities/job.entity';
 import { JobMapper } from './mappers/job.mapper';
 import { IJobsRepository } from '../domain/ports/jobs-repository.port';
 import { Modality } from '../domain/enums/modality.enum';
 import dayjs, { ManipulateType } from 'dayjs';
+import { DRIZZLE_TOKEN } from 'src/infrastructure/database/drizzle/tokens/drizzle.tokens';
+import { KNEX_SERVICE } from 'src/infrastructure/database/knex/knex.tokens';
+import { KnexService } from 'src/infrastructure/database/knex/knex.service';
 
 @Injectable()
 export class JobsRepository implements IJobsRepository {
-  constructor(@Inject('DRIZZLE_DB') private db: DrizzleDB) {}
+  constructor(
+    @Inject(DRIZZLE_TOKEN) private db: DrizzleDB,
+    @Inject(KNEX_SERVICE) private knex: KnexService,
+  ) {}
 
   async getJobs(data: {
     location: string[];
@@ -28,41 +34,61 @@ export class JobsRepository implements IJobsRepository {
       publicationDate,
       source,
     } = data;
-    const conditions: SQL[] = [];
+    const query = this.knex
+      .db('jobs as j')
+      .select(
+        'j.id',
+        'j.title',
+        'j.description',
+        'j.location',
+        'j.stack',
+        'j.is_deleted as isDeleted',
+        'j.modality',
+        'j.external_id as externalId',
+        'j.posted_date as postedDate',
+        'j.source',
+        'j.link_url as linkUrl',
+        'j.created_at as createdAt',
+        'j.updated_at as updatedAt',
+        'j.deleted_at as deletedAt',
+        'c.name as companyName',
+        'c.image_url as imageUrl',
+        this.knex.db.raw(
+          `json_build_object(
+            'id', c.id,
+            'name', c.name,
+            'imageUrl', c.image_url
+          ) as company`,
+        ),
+      )
+      .join('companies as c', 'c.id', 'j.company_id');
     if (search) {
-      conditions.push(ilike(jobs.title, `%${search}%`));
+      query.andWhere('j.title', 'ilike', `%${search}%`);
     }
 
-    if (location.length > 0) {
-      conditions.push(inArray(jobs.location, location));
-    }
-    if (modality.length > 0) {
-      conditions.push(inArray(jobs.modality, modality));
+    if (location && location.length > 0) {
+      query.andWhere('j.location', 'in', location);
     }
 
-    if (technologies.length > 0) {
-      conditions.push(
-        sql`${jobs.stack} @> ARRAY[${sql.join(
-          technologies.map((t) => sql`${t}`),
-          sql`, `,
-        )}]::text[]`,
-      );
+    if (modality && modality.length > 0) {
+      query.andWhere('j.modality', 'in', modality);
     }
 
-    if (source.length > 0) {
-      conditions.push(inArray(jobs.source, source));
+    if (technologies && technologies.length > 0) {
+      query.andWhereRaw('j.stack @> ?::text[]', [technologies]);
+    }
+
+    if (source && source.length > 0) {
+      query.andWhere('j.source', 'in', source);
     }
 
     if (publicationDate) {
-      const fromDate = dayjs().subtract(1, publicationDate).toDate();
-      conditions.push(gte(jobs.postedDate, fromDate));
+      const date = dayjs().subtract(1, publicationDate);
+      query.andWhere('j.posted_date', '>=', date.toDate());
     }
+    const dataDB = await query;
 
-    return this.db
-      .select()
-      .from(jobs)
-      .where(and(...conditions))
-      .orderBy(desc(jobs.postedDate));
+    return dataDB as JobEntity[];
   }
 
   async getLocations(): Promise<string[]> {

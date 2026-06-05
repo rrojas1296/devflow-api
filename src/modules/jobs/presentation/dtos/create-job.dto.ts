@@ -40,4 +40,7 @@ export class CreateJobDto {
 
   @IsString()
   source: string;
+
+  @IsString()
+  companyId: string;
 }

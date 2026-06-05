@@ -7,11 +7,9 @@ export class JobMapper {
       id: raw.id,
       title: raw.title,
       description: raw.description,
-      companyName: raw.companyName,
       location: raw.location,
       stack: raw.stack,
       isDeleted: raw.isDeleted,
-      imageUrl: raw.imageUrl,
       modality: raw.modality,
       externalId: raw.externalId,
       postedDate: raw.postedDate,
@@ -20,6 +18,7 @@ export class JobMapper {
       createdAt: raw.createdAt,
       updatedAt: raw.updatedAt,
       deletedAt: raw.deletedAt,
+      companyId: raw.companyId,
     };
   }
 
@@ -27,15 +26,14 @@ export class JobMapper {
     return {
       title: entity.title,
       description: entity.description,
-      companyName: entity.companyName,
       location: entity.location,
       stack: entity.stack,
-      imageUrl: entity.imageUrl,
       modality: entity.modality,
       externalId: entity.externalId,
       postedDate: entity.postedDate,
       source: entity.source,
       linkUrl: entity.linkUrl,
+      companyId: entity.companyId,
     };
   }
 }

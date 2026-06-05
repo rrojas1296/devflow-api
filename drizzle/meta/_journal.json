@@ -57,6 +57,34 @@
       "when": 1779138733163,
       "tag": "0007_mature_blue_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1780615163089,
+      "tag": "0008_stiff_lady_vermin",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1780620232259,
+      "tag": "0009_special_electro",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1780633973955,
+      "tag": "0010_violet_blue_blade",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1780641174852,
+      "tag": "0011_foamy_vengeance",
+      "breakpoints": true
     }
   ]
 }

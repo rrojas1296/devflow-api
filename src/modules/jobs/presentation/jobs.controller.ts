@@ -52,15 +52,14 @@ export class JobsController {
     const input: JobCreateInput = {
       title: data.title,
       description: data.description,
-      companyName: data.companyName,
       location: data.location,
       stack: data.stack,
-      imageUrl: data.imageUrl ?? null,
       linkUrl: data.linkUrl,
       modality: data.modality,
       postedDate: data.postedDate,
       externalId: data.externalId,
       source: data.source,
+      companyId: data.companyId,
     };
     const job = await this.createJobUseCase.execute(input);
 
