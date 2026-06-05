@@ -17,6 +17,7 @@ export const TECH_ALIASES: Record<string, string[]> = {
   express: ['express', 'expressjs'],
   nestjs: ['nestjs', 'nest.js'],
   django: ['django'],
+  dotnet: ['.net'],
   spring: ['spring', 'spring boot'],
   laravel: ['laravel'],
 
@@ -25,7 +26,7 @@ export const TECH_ALIASES: Record<string, string[]> = {
   typescript: ['typescript', 'ts'],
   python: ['python'],
   java: ['java'],
-  go: ['go', 'golang'],
+  go: ['golang'],
   php: ['php'],
   ruby: ['ruby'],
   'c#': ['c#', 'csharp'],

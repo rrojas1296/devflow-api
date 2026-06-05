@@ -61,7 +61,8 @@ export class JobsRepository implements IJobsRepository {
           ) as company`,
         ),
       )
-      .join('companies as c', 'c.id', 'j.company_id');
+      .join('companies as c', 'c.id', 'j.company_id')
+      .orderBy('j.posted_date', 'desc');
     if (search) {
       query.andWhere('j.title', 'ilike', `%${search}%`);
     }

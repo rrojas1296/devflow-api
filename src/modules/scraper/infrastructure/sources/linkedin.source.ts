@@ -30,10 +30,9 @@ export class LinkedinSource implements IScraperSource {
       const dataJobs: SourceJobResult[] = [];
       const page = await context.newPage();
       const pageCount = 25;
-      const totalPages = 1;
+      const totalPages = 10;
 
       for (let i = 0; i < totalPages; i++) {
-        console.log('=====> Page ', i + 1);
         const url = new URL('https://www.linkedin.com/jobs/search-results');
         url.searchParams.append('keywords', data.keywords);
         url.searchParams.append('origin', 'JOB_COLLECTION_PAGE_SEARCH_BUTTON');
@@ -45,6 +44,7 @@ export class LinkedinSource implements IScraperSource {
         await page.goto(url.toString(), {
           timeout: 30000,
         });
+        console.log('=====> Page ', i + 1);
         try {
           await page.waitForFunction(
             ({ selector, min }) =>
