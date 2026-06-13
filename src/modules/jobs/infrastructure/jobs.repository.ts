@@ -19,21 +19,30 @@ export class JobsRepository implements IJobsRepository {
   ) {}
 
   async getJobs(data: {
-    location: string[];
+    locations: string[];
     technologies: string[];
-    publicationDate?: ManipulateType;
+    postedDate?: ManipulateType;
     modality: Modality[];
     source: string[];
     search?: string;
-  }): Promise<JobEntity[]> {
+    page?: string;
+    limit?: string;
+  }): Promise<{
+    jobs: JobEntity[];
+    count: number;
+  }> {
     const {
       search,
-      location,
+      locations,
       modality,
       technologies,
-      publicationDate,
+      postedDate,
       source,
+      page = '1',
+      limit,
     } = data;
+
+    const offset = (Number(page) - 1) * Number(limit);
     const query = this.knex
       .db('jobs as j')
       .select(
@@ -62,14 +71,14 @@ export class JobsRepository implements IJobsRepository {
           ) as company`,
         ),
       )
-      .join('companies as c', 'c.id', 'j.company_id')
+      .innerJoin('companies as c', 'c.id', 'j.company_id')
       .orderBy('j.posted_date', 'desc');
     if (search) {
       query.andWhere('j.title', 'ilike', `%${search}%`);
     }
 
-    if (location && location.length > 0) {
-      query.andWhere('j.location', 'in', location);
+    if (locations && locations.length > 0) {
+      query.andWhere('j.location', 'in', locations);
     }
 
     if (modality && modality.length > 0) {
@@ -84,15 +93,26 @@ export class JobsRepository implements IJobsRepository {
       query.andWhere('j.source', 'in', source);
     }
 
-    if (publicationDate) {
-      const date = dayjs().subtract(1, publicationDate);
+    if (postedDate) {
+      const date = dayjs().subtract(1, postedDate);
       query.andWhere('j.posted_date', '>=', date.toDate());
     }
-    const dataDB = await query;
 
-    return (dataDB as unknown as KnexJobRaw[]).map((raw) =>
-      JobMapper.fromKnexRaw(raw),
-    );
+    const countQuery = query
+      .clone()
+      .clearSelect()
+      .clearOrder()
+      .countDistinct('j.id as total');
+
+    const countResult = await countQuery.first();
+    const total = Number(countResult?.total) || 0;
+
+    const dataDB = await query.limit(Number(limit)).offset(offset);
+
+    return {
+      jobs: (dataDB as KnexJobRaw[]).map((raw) => JobMapper.fromKnexRaw(raw)),
+      count: total,
+    };
   }
 
   async getLocations(): Promise<string[]> {

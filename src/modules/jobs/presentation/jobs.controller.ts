@@ -14,20 +14,24 @@ export class JobsController {
   ) {}
   @Get()
   async getJobs(
-    @Query('location') location?: string,
+    @Query('locations') locations?: string,
     @Query('technologies') technologies?: string,
-    @Query('publicationDate') publicationDate?: string,
+    @Query('postedDate') postedDate?: string,
     @Query('modality') modality?: string,
     @Query('source') source?: string,
     @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
   ) {
     const data = await this.getJobsUseCase.execute({
-      location,
+      locations,
       technologies,
-      publicationDate,
+      postedDate,
       modality,
       source,
       search,
+      page,
+      limit,
     });
 
     return {

@@ -8,27 +8,33 @@ import { Modality } from '../../domain/enums/modality.enum';
 export class GetJobsUseCase {
   constructor(@Inject(JOBS_REPOSITORY) private jobsRepo: IJobsRepository) {}
   execute({
-    location,
+    locations,
     technologies,
-    publicationDate,
+    postedDate,
     modality,
     source,
     search,
+    page,
+    limit,
   }: {
-    location?: string;
+    locations?: string;
     technologies?: string;
-    publicationDate?: string;
+    postedDate?: string;
     modality?: string;
     source?: string;
     search?: string;
+    page?: string;
+    limit?: string;
   }) {
     const data = {
-      location: location?.split(',') || [],
+      locations: locations?.split(',') || [],
       technologies: technologies?.split(',') || [],
-      publicationDate: publicationDate as ManipulateType | undefined,
+      postedDate: postedDate as ManipulateType | undefined,
       modality: (modality?.split(',') || []) as Modality[],
       source: source?.split(',') || [],
       search,
+      page,
+      limit,
     };
     return this.jobsRepo.getJobs(data);
   }

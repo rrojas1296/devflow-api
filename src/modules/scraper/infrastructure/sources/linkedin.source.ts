@@ -8,6 +8,7 @@ import type { IScraperSource } from '../../domain/ports/scraper-source.port';
 import type { ScrapeRequest } from '../../domain/ports/scraper-producer.port';
 import { hasTech } from '../../application/utils/has-tech';
 import { SourceJobResult } from '../../domain/interfaces/source-job-result.interface';
+import { getCountry } from '../../application/utils/get-country';
 
 @Injectable()
 export class LinkedinSource implements IScraperSource {
@@ -68,17 +69,21 @@ export class LinkedinSource implements IScraperSource {
         const totalCards = await cards.count();
 
         console.log(`=====> ${totalCards - 1} cards found`);
-        for (let i = 0; i < totalCards - 1; i++) {
+        for (let i = 0; i < totalCards; i++) {
           const card = cards.nth(i);
           await card.click();
 
-          await page.waitForFunction(() => {
-            const el = document.querySelector(
-              "div[componentKey^='JobDetails_AboutTheJob']",
-            );
+          try {
+            await page.waitForFunction(() => {
+              const el = document.querySelector(
+                "div[componentKey^='JobDetails_AboutTheJob']",
+              );
 
-            return el && el.textContent && el.textContent.length > 250;
-          });
+              return el && el.textContent && el.textContent.length > 250;
+            });
+          } catch {
+            continue;
+          }
           const job = await card.evaluate((card) => {
             const regex = /^(.*)\s*\((.*)\)$/;
             const timeRegex = /\d+/;
@@ -103,11 +108,6 @@ export class LinkedinSource implements IScraperSource {
               card.querySelectorAll('div > p > span')[1]?.textContent;
             const companyName =
               card.querySelectorAll('div > p')[1]?.textContent;
-            const location =
-              card
-                .querySelectorAll('div > p')[2]
-                ?.textContent.match(regex)?.[1]
-                .trim() || 'Latin America';
 
             const modality = card
               .querySelectorAll('div > p')[2]
@@ -120,7 +120,6 @@ export class LinkedinSource implements IScraperSource {
               imageUrl: imageUrl,
               title,
               companyName,
-              location,
               modality,
               postedDate: date.toISOString(),
               description: '',
@@ -132,6 +131,13 @@ export class LinkedinSource implements IScraperSource {
           const applyButton = page.locator(
             "div[data-component-type='LazyColumn'] a[aria-label='Apply on company website']",
           );
+
+          const location = await page
+            .locator("div[data-component-type='LazyColumn']")
+            .nth(2)
+            .locator('p > span:has(~ span)')
+            .nth(0)
+            .textContent();
 
           let linkUrl = job.linkUrl;
 
@@ -156,14 +162,14 @@ export class LinkedinSource implements IScraperSource {
             allowedTags: sanitizeHtml.defaults.allowedTags,
             allowedAttributes: {},
           });
-          if (!job.title || !job.companyName || !job.location || !job.modality)
+          if (!job.title || !job.companyName || !location || !job.modality)
             continue;
 
           dataJobs.push({
             title: job.title,
             description: sanitizedDescription,
             companyName: job.companyName,
-            location: job.location.replace(',', '-'),
+            location: getCountry(location ?? 'Latin America'),
             externalId: job.jobId,
             stack: Object.keys(TECH_ALIASES).filter((s) =>
               hasTech(description, s),

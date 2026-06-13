@@ -1,5 +1,4 @@
 export const TECH_ALIASES: Record<string, string[]> = {
-  // frontend
   angular: ['angular'],
   react: ['react'],
   vue: ['vue'],
@@ -7,12 +6,8 @@ export const TECH_ALIASES: Record<string, string[]> = {
   nuxt: ['nuxt', 'nuxtjs', 'nuxt.js'],
   vite: ['vite'],
   tailwindcss: ['tailwind', 'tailwindcss'],
-
-  // mobile
   'react-native': ['react-native', 'react native'],
   flutter: ['flutter'],
-
-  // backend
   nodejs: ['node', 'nodejs', 'node.js'],
   express: ['express', 'expressjs'],
   nestjs: ['nestjs', 'nest.js'],
@@ -20,8 +15,6 @@ export const TECH_ALIASES: Record<string, string[]> = {
   dotnet: ['.net'],
   spring: ['spring', 'spring boot'],
   laravel: ['laravel'],
-
-  // languages
   javascript: ['javascript', 'js'],
   typescript: ['typescript', 'ts'],
   python: ['python'],
@@ -31,21 +24,15 @@ export const TECH_ALIASES: Record<string, string[]> = {
   ruby: ['ruby'],
   'c#': ['c#', 'csharp'],
   'c++': ['c++', 'cpp'],
-
-  // databases
   postgresql: ['postgresql', 'postgres', 'psql'],
   mysql: ['mysql'],
   mongodb: ['mongodb', 'mongo', 'mongo_db'],
   redis: ['redis'],
-
-  // infra / cloud
   docker: ['docker'],
   kubernetes: ['kubernetes', 'k8s'],
   aws: ['aws', 'amazon web services'],
   firebase: ['firebase'],
   supabase: ['supabase'],
-
-  // tools / libs
   git: ['git'],
   github: ['github'],
   graphql: ['graphql'],

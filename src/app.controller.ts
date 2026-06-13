@@ -6,4 +6,9 @@ export class AppController {
   getHello(): string {
     return 'Devflow API';
   }
+
+  @Get('data')
+  data(): any[] {
+    return [];
+  }
 }

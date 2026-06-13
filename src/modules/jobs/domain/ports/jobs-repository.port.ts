@@ -4,13 +4,18 @@ import { Modality } from '../enums/modality.enum';
 
 export interface IJobsRepository {
   getJobs(data: {
-    location: string[];
+    locations: string[];
     technologies: string[];
-    publicationDate?: ManipulateType;
+    postedDate?: ManipulateType;
     modality: Modality[];
     source: string[];
     search?: string;
-  }): Promise<JobEntity[]>;
+    page?: string;
+    limit?: string;
+  }): Promise<{
+    jobs: JobEntity[];
+    count: number;
+  }>;
   getLocations(): Promise<string[]>;
   getJobsByIds(ids: string[]): Promise<JobEntity[]>;
   createJob(data: JobCreateInput): Promise<JobEntity>;
