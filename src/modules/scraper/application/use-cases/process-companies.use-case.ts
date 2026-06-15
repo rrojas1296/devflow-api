@@ -3,7 +3,6 @@ import type { IImageStorage } from 'src/infrastructure/cloudinary/cloudinary-ser
 import { IMAGE_STORAGE } from 'src/infrastructure/cloudinary/cloudinary.tokens';
 import { COMPANIES_REPOSITORY } from 'src/modules/companies/domain/tokens/companies.tokens';
 import type { CompaniesRepositoryPort } from 'src/modules/companies/domain/ports/companies-repository.port';
-import { CompanyCreateInput } from 'src/modules/companies/domain/entities/companies.entity';
 import { HTTP_CLIENT } from '../../domain/ports/http-client.port';
 import type { IHttpClient } from '../../domain/ports/http-client.port';
 import { SourceJobResult } from '../../domain/interfaces/source-job-result.interface';
@@ -21,21 +20,22 @@ export class ProcessCompaniesUseCase implements ICompanyProcessor {
   ) {}
 
   async execute(newJobs: SourceJobResult[]) {
-    const names = newJobs.map((nj) => nj.companyName);
-    const existingCompaniesDB =
-      await this.companiesRepo.getCompaniesByNames(names);
+    const companies = newJobs.map((nj) => {
+      return { imageUrl: nj.imageUrl, description: null, name: nj.companyName };
+    });
+    const nonRepeatedCompanies = Array.from(
+      new Map(companies.map((item) => [item.name, item])).values(),
+    );
+    const existingCompaniesDB = await this.companiesRepo.getCompaniesByNames(
+      nonRepeatedCompanies.map((c) => c.name),
+    );
 
-    const companiesToCreate: CompanyCreateInput[] = newJobs
-      .map((nj): CompanyCreateInput | undefined => {
-        const c = existingCompaniesDB.find((c) => c.name === nj.companyName);
-        if (c) return undefined;
-        return {
-          name: nj.companyName,
-          imageUrl: nj.imageUrl,
-          description: null,
-        };
-      })
-      .filter((c): c is CompanyCreateInput => c !== undefined);
+    const companiesToCreate = nonRepeatedCompanies.filter((c) => {
+      const existingCompany = existingCompaniesDB.find(
+        (ec) => ec.name === c.name,
+      );
+      return !existingCompany;
+    });
 
     const imageLength = companiesToCreate.filter(
       (ctc) => ctc.imageUrl !== null,

@@ -18,10 +18,10 @@ export class JobScraperService {
 
     const companiesDB = await this.companyProcessor.execute(newJobs);
 
-    const jobsToInsert: JobCreateInput[] = newJobs
+    const jobsToInsert = newJobs
       .map((nj): JobCreateInput | undefined => {
         const company = companiesDB.find((cp) => cp.name === nj.companyName);
-        if (!company) return undefined;
+        if (!company) return;
         return {
           title: nj.title,
           description: nj.description,
@@ -35,7 +35,7 @@ export class JobScraperService {
           companyId: company.id,
         };
       })
-      .filter((d): d is JobCreateInput => d !== undefined);
+      .filter((d) => d !== undefined);
 
     console.log(`=====> Inserting ${newJobs?.length} jobs`);
     await this.jobsRepo.bulkJobs(jobsToInsert);
