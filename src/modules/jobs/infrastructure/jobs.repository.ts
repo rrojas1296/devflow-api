@@ -27,6 +27,7 @@ export class JobsRepository implements IJobsRepository {
     search?: string;
     page?: string;
     limit?: string;
+    orderBy?: string;
   }): Promise<{
     jobs: JobEntity[];
     count: number;
@@ -40,6 +41,7 @@ export class JobsRepository implements IJobsRepository {
       source,
       page = '1',
       limit,
+      orderBy,
     } = data;
 
     const offset = (Number(page) - 1) * Number(limit);
@@ -71,8 +73,7 @@ export class JobsRepository implements IJobsRepository {
           ) as company`,
         ),
       )
-      .innerJoin('companies as c', 'c.id', 'j.company_id')
-      .orderBy('j.posted_date', 'desc');
+      .innerJoin('companies as c', 'c.id', 'j.company_id');
     if (search) {
       query.andWhere('j.title', 'ilike', `%${search}%`);
     }
@@ -98,6 +99,16 @@ export class JobsRepository implements IJobsRepository {
       query.andWhere('j.posted_date', '>=', date.toDate());
     }
 
+    if (orderBy && orderBy === 'new') {
+      query.orderBy('j.posted_date', 'desc');
+    }
+
+    if (orderBy && orderBy === 'old') {
+      query.orderBy('j.posted_date', 'asc');
+    }
+    if (orderBy && orderBy === 'az') {
+      query.orderBy('j.title', 'asc');
+    }
     const countQuery = query
       .clone()
       .clearSelect()
@@ -130,13 +141,49 @@ export class JobsRepository implements IJobsRepository {
     return data.map((d) => JobMapper.toDomain(d));
   }
 
+  async getKpis(): Promise<{ total: string; added: string; sources: string }> {
+    const total = await this.knex.db('jobs').count('* as total').first();
+    const added = await this.knex
+      .db('jobs')
+      .count('* as added')
+      .where('posted_date', '>=', dayjs().subtract(1, 'day').toDate())
+      .first();
+
+    const sources = await this.knex
+      .db('jobs')
+      .countDistinct('source as sources')
+      .first();
+
+    return {
+      total: total?.total.toString() ?? '0',
+      added: added?.added.toString() ?? '0',
+      sources: sources?.sources.toString() ?? '0',
+    };
+  }
+
   async createJob(data: JobCreateInput): Promise<JobEntity> {
     const [newJob] = await this.db.insert(jobs).values(data).returning();
     return JobMapper.toDomain(newJob);
   }
 
   async bulkJobs(data: JobCreateInput[]): Promise<JobEntity[]> {
-    const newJobs = await this.db.insert(jobs).values(data).returning();
+    const newJobs = await this.db
+      .insert(jobs)
+      .values(data)
+      .onConflictDoUpdate({
+        target: [jobs.externalId],
+        set: {
+          title: jobs.title,
+          linkUrl: jobs.linkUrl,
+          description: jobs.description,
+          location: jobs.location,
+          stack: jobs.stack,
+          modality: jobs.modality,
+          source: jobs.source,
+          postedDate: jobs.postedDate,
+        },
+      })
+      .returning();
     return newJobs.map((d) => JobMapper.toDomain(d));
   }
 }

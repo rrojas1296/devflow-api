@@ -9,6 +9,8 @@ import { GetJobsByIdUseCase } from './application/use-cases/get-jobs-by-id.use-c
 import { BulkJobsUseCase } from './application/use-cases/bulk-jobs.use-case-';
 import { JOBS_REPOSITORY } from './domain/tokens/jobs.tokens';
 import { GetLocationsUseCase } from './application/use-cases/get-locations.use-case';
+import { GetJobsKpisUseCase } from './application/use-cases/get-jobs-kpis.use-case';
+import { CompaniesModule } from '../companies/companies.module';
 
 const USE_CASES: Provider[] = [
   CreateJobUseCase,
@@ -16,6 +18,7 @@ const USE_CASES: Provider[] = [
   GetJobsByIdUseCase,
   BulkJobsUseCase,
   GetLocationsUseCase,
+  GetJobsKpisUseCase,
 ];
 const REPOSITORIES: Provider[] = [
   {
@@ -25,7 +28,7 @@ const REPOSITORIES: Provider[] = [
 ];
 
 @Module({
-  imports: [DrizzleModule, QueueModule],
+  imports: [DrizzleModule, QueueModule, CompaniesModule],
   controllers: [JobsController],
   providers: [...USE_CASES, ...REPOSITORIES],
   exports: [GetJobsByIdUseCase, BulkJobsUseCase, JOBS_REPOSITORY],

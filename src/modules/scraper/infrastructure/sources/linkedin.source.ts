@@ -1,7 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import sanitizeHtml from 'sanitize-html';
 import { chromium } from 'playwright';
-import { ManipulateType } from 'dayjs';
 import { TECH_ALIASES } from '../constants/stack.constants';
 import path from 'path';
 import type { IScraperSource } from '../../domain/ports/scraper-source.port';
@@ -9,6 +8,7 @@ import type { ScrapeRequest } from '../../domain/ports/scraper-producer.port';
 import { hasTech } from '../../application/utils/has-tech';
 import { SourceJobResult } from '../../domain/interfaces/source-job-result.interface';
 import { getCountry } from '../../application/utils/get-country';
+import { Modality } from 'src/modules/jobs/domain/enums/modality.enum';
 
 @Injectable()
 export class LinkedinSource implements IScraperSource {
@@ -63,12 +63,13 @@ export class LinkedinSource implements IScraperSource {
           break;
         }
         const cards = page.locator(
-          "div[componentKey='SearchResultsMainContent'] > div > div > div > div",
+          "div[componentKey='SearchResultsMainContent'] > div > div > div > div > div > div",
         );
+        const modalities: Modality[] = ['remote', 'hybrid', 'onsite'];
 
-        const totalCards = await cards.count();
+        const totalCards = Math.min(25, (await cards.count()) - 1);
 
-        console.log(`=====> ${totalCards - 1} cards found`);
+        console.log(`=====> ${totalCards} cards found`);
         for (let i = 0; i < totalCards; i++) {
           const card = cards.nth(i);
           await card.click();
@@ -84,49 +85,65 @@ export class LinkedinSource implements IScraperSource {
           } catch {
             continue;
           }
-          const job = await card.evaluate((card) => {
-            const regex = /^(.*)\s*\((.*)\)$/;
-            const timeRegex = /\d+/;
+          const timeCard = await page
+            .locator("div[data-component-type='LazyColumn']")
+            .nth(2)
+            .locator('p > span:nth-child(4)')
+            .nth(0)
+            .textContent();
 
-            const jobLinkedinId =
-              new URL(window.location.href).searchParams.get('currentJobId') ||
-              '';
+          const unitDate =
+            timeCard?.toLowerCase().split(' ').at(-2) || 'minutes';
+          const valueDate = timeCard?.toLowerCase().split(' ').at(-3) || '1';
+          const date = new Date();
+          if (unitDate === 'minutes') {
+            date.setMinutes(date.getMinutes() - parseInt(valueDate));
+          } else {
+            date.setHours(date.getHours() - parseInt(valueDate));
+          }
+          const postedDate = date.toISOString();
+          const externalId = new URL(page.url()).searchParams.get(
+            'currentJobId',
+          )!;
+          let linkUrl = `https://www.linkedin.com/jobs/view/${externalId}`;
 
-            const time =
-              card.querySelectorAll('div > p > span')[3]?.textContent;
-            const value = Number(time?.match(timeRegex)?.[0] || 10);
-            const unit = (time?.split(' ')[2] || 'minutes') as ManipulateType;
-            const date = new Date();
-            if (unit === 'minutes') {
-              date.setMinutes(date.getMinutes() - value);
-            } else {
-              date.setHours(date.getHours() - value);
+          const title = await card
+            .locator('div > p > span')
+            .nth(1)
+            .textContent();
+
+          const companyName = await card
+            .locator('div > p')
+            .nth(1)
+            .textContent();
+
+          const jobModality = (
+            await page
+              .locator("div[data-component-type='LazyColumn']")
+              .nth(2)
+              .locator('div:nth-child(2) > div > a > span')
+              .nth(0)
+              .textContent()
+          )
+            ?.toLowerCase()
+            .replaceAll('-', '');
+
+          const modality =
+            modalities.find((m) => jobModality?.includes(m)) ?? 'remote';
+
+          let imageUrl: string | null = null;
+
+          const hasImages = (await card.locator('img').count()) > 0;
+
+          if (hasImages) {
+            const widthImage = await card
+              .locator('img')
+              .nth(0)
+              .evaluate((el) => el.clientWidth);
+            if (widthImage === 48) {
+              imageUrl = await card.locator('img').nth(0).getAttribute('src');
             }
-
-            const imageUrl = card.querySelector('img')?.getAttribute('src');
-            const title =
-              card.querySelectorAll('div > p > span')[1]?.textContent;
-            const companyName =
-              card.querySelectorAll('div > p')[1]?.textContent;
-
-            const modality = card
-              .querySelectorAll('div > p')[2]
-              ?.textContent.match(regex)?.[2]
-              .trim()
-              .replace('-', '')
-              .toLowerCase();
-
-            return {
-              imageUrl: imageUrl,
-              title,
-              companyName,
-              modality,
-              postedDate: date.toISOString(),
-              description: '',
-              jobId: jobLinkedinId,
-              linkUrl: `https://www.linkedin.com/jobs/view/${jobLinkedinId}`,
-            };
-          });
+          }
 
           const applyButton = page.locator(
             "div[data-component-type='LazyColumn'] a[aria-label='Apply on company website']",
@@ -138,8 +155,6 @@ export class LinkedinSource implements IScraperSource {
             .locator('p > span:has(~ span)')
             .nth(0)
             .textContent();
-
-          let linkUrl = job.linkUrl;
 
           const externalURL = (await applyButton.count()) > 0;
 
@@ -162,24 +177,32 @@ export class LinkedinSource implements IScraperSource {
             allowedTags: sanitizeHtml.defaults.allowedTags,
             allowedAttributes: {},
           });
-          if (!job.title || !job.companyName || !location || !job.modality)
+          const stack = Object.keys(TECH_ALIASES).filter((s) =>
+            hasTech(description, s),
+          );
+          if (
+            !title ||
+            !companyName ||
+            !location ||
+            !linkUrl ||
+            stack.length === 0
+          )
             continue;
-
-          dataJobs.push({
-            title: job.title,
+          const job: SourceJobResult = {
+            title,
             description: sanitizedDescription,
-            companyName: job.companyName,
+            companyName,
             location: getCountry(location ?? 'Latin America'),
-            externalId: job.jobId,
-            stack: Object.keys(TECH_ALIASES).filter((s) =>
-              hasTech(description, s),
-            ),
-            imageUrl: job.imageUrl ? job.imageUrl : null,
-            modality: job.modality,
+            externalId,
+            stack,
+            imageUrl,
+            modality,
             linkUrl,
             source: this.key,
-            postedDate: new Date(job.postedDate),
-          });
+            postedDate: new Date(postedDate),
+          };
+
+          dataJobs.push(job);
         }
       }
       await context.close();

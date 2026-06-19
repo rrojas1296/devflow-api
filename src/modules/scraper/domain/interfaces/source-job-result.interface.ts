@@ -1,3 +1,5 @@
+import { Modality } from 'src/modules/jobs/domain/enums/modality.enum';
+
 export interface SourceJobResult {
   title: string;
   description: string;
@@ -6,7 +8,7 @@ export interface SourceJobResult {
   externalId: string;
   stack: string[];
   imageUrl: string | null;
-  modality: string;
+  modality: Modality;
   linkUrl: string;
   source: string;
   postedDate: Date;

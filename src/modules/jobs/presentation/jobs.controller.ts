@@ -4,6 +4,7 @@ import { GetJobsUseCase } from '../application/use-cases/get-jobs.use-case';
 import { CreateJobUseCase } from '../application/use-cases/create-job.use-case';
 import { JobCreateInput } from '../domain/entities/job.entity';
 import { GetLocationsUseCase } from '../application/use-cases/get-locations.use-case';
+import { GetJobsKpisUseCase } from '../application/use-cases/get-jobs-kpis.use-case';
 
 @Controller('jobs')
 export class JobsController {
@@ -11,6 +12,7 @@ export class JobsController {
     private getJobsUseCase: GetJobsUseCase,
     private createJobUseCase: CreateJobUseCase,
     private getLocationsUseCase: GetLocationsUseCase,
+    private getJobsKpisUseCase: GetJobsKpisUseCase,
   ) {}
   @Get()
   async getJobs(
@@ -22,6 +24,7 @@ export class JobsController {
     @Query('search') search?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
+    @Query('orderBy') orderBy?: string,
   ) {
     const data = await this.getJobsUseCase.execute({
       locations,
@@ -32,6 +35,7 @@ export class JobsController {
       search,
       page,
       limit,
+      orderBy,
     });
 
     return {
@@ -47,6 +51,16 @@ export class JobsController {
     return {
       statusCode: HttpStatus.OK,
       message: 'Locations fetched successfully',
+      data,
+    };
+  }
+
+  @Get('kpis')
+  async getKpis() {
+    const data = await this.getJobsKpisUseCase.execute();
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Kpis fetched successfully',
       data,
     };
   }

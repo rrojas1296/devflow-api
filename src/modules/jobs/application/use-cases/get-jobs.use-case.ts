@@ -16,6 +16,7 @@ export class GetJobsUseCase {
     search,
     page,
     limit,
+    orderBy,
   }: {
     locations?: string;
     technologies?: string;
@@ -25,6 +26,7 @@ export class GetJobsUseCase {
     search?: string;
     page?: string;
     limit?: string;
+    orderBy?: string;
   }) {
     const data = {
       locations: locations?.split(',') || [],
@@ -35,6 +37,7 @@ export class GetJobsUseCase {
       search,
       page,
       limit,
+      orderBy,
     };
     return this.jobsRepo.getJobs(data);
   }

@@ -19,40 +19,47 @@ export class ProcessCompaniesUseCase implements ICompanyProcessor {
     private readonly httpClient: IHttpClient,
   ) {}
 
-  async execute(newJobs: SourceJobResult[]) {
-    const companies = newJobs.map((nj) => {
-      return { imageUrl: nj.imageUrl, description: null, name: nj.companyName };
-    });
-    const nonRepeatedCompanies = Array.from(
-      new Map(companies.map((item) => [item.name, item])).values(),
+  async execute(rawJobs: SourceJobResult[]) {
+    const companies = Array.from(
+      new Map(
+        rawJobs.map((nj) => {
+          return [
+            nj.companyName,
+            {
+              imageUrl: nj.imageUrl,
+              description: null,
+              name: nj.companyName,
+            },
+          ];
+        }),
+      ).values(),
     );
-    const existingCompaniesDB = await this.companiesRepo.getCompaniesByNames(
-      nonRepeatedCompanies.map((c) => c.name),
+    const existingCompanies = await this.companiesRepo.getCompaniesByNames(
+      companies.map((c) => c.name),
     );
 
-    const companiesToCreate = nonRepeatedCompanies.filter((c) => {
-      const existingCompany = existingCompaniesDB.find(
-        (ec) => ec.name === c.name,
-      );
-      return !existingCompany;
-    });
+    const existingNames = new Set(existingCompanies.map((c) => c.name));
 
-    const imageLength = companiesToCreate.filter(
+    const companiesToInsert = companies.filter(
+      (c) => !existingNames.has(c.name),
+    );
+
+    const imageLength = companiesToInsert.filter(
       (ctc) => ctc.imageUrl !== null,
-    );
+    ).length;
 
-    console.log(`=====> Uploading ${imageLength.length} images`);
+    console.log(`=====> Uploading ${imageLength} images`);
 
-    for (const company of companiesToCreate) {
+    for (const company of companiesToInsert) {
       if (company.imageUrl === null) continue;
       const buffer = await this.httpClient.getBuffer(company.imageUrl);
       const { url } = await this.imageStorage.uploadStream(buffer);
       company.imageUrl = url;
     }
-    console.log(`=====> Creating ${companiesToCreate.length} companies`);
+    console.log(`=====> Creating ${companiesToInsert.length} companies`);
     const newCompanies =
-      await this.companiesRepo.bulkCompanies(companiesToCreate);
-    const companiesDB = [...existingCompaniesDB, ...newCompanies];
+      await this.companiesRepo.bulkCompanies(companiesToInsert);
+    const companiesDB = [...existingCompanies, ...newCompanies];
 
     return companiesDB;
   }

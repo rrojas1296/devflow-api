@@ -12,12 +12,18 @@ export interface IJobsRepository {
     search?: string;
     page?: string;
     limit?: string;
+    orderBy?: string;
   }): Promise<{
     jobs: JobEntity[];
     count: number;
   }>;
   getLocations(): Promise<string[]>;
   getJobsByIds(ids: string[]): Promise<JobEntity[]>;
+  getKpis(): Promise<{
+    total: string;
+    added: string;
+    sources: string;
+  }>;
   createJob(data: JobCreateInput): Promise<JobEntity>;
   bulkJobs(data: JobCreateInput[]): Promise<JobEntity[]>;
 }
